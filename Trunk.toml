@@ -1,0 +1,14 @@
+[build]
+release = false
+
+[watch]
+ignore = [".idea"]
+
+[serve]
+address = "127.0.0.1"
+port = 52787
+
+[[hooks]]
+stage = "post_build"
+command = "cargo"
+command_arguments = ["run", "--bin", "copy-and-link"]

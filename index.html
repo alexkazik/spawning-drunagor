@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Unofficial Drunagor Randomizer</title>
+    <base data-trunk-public-url/>
+    <!include-bootstrap-icons>
+    <link data-trunk rel="css" href="static/bootstrap-v5.3.1/bootstrap.min.css"/>
+    <link data-trunk rel="copy-file" href="static/bootstrap-v5.3.1/bootstrap.min.css.map"/>
+    <link data-trunk rel="copy-file" href="static/bootstrap-v5.3.1/bootstrap.min.js.map"/>
+    <link data-trunk rel="rust" data-bin="spawning-drunagor"/>
+    <link data-trunk rel="icon" href="static/favicon.png" type="image/png"/>
+    <link data-trunk rel="scss" href="static/styles.scss"/>
+</head>
+<body>
+<div class="container" style="text-align: center">
+    <h1>Unofficial Drunagor Randomizer</h1><br/>
+    <h2>Loading...</h2><br/>
+    <span class="timed" style="display: none">If you see this for too long please (force) reload.</span><br/>
+    <small class="timed" style="display: none">(Force Reload: <i class="bi bi-apple"></i>: <i class="bi bi-shift"></i><i
+            class="bi bi-command"></i>R, <i class="bi bi-windows"></i>: Ctrl+F5, <i class="bi bi-browser-safari"></i>:
+        <i class="bi bi-option"></i><i class="bi bi-command"></i>R)</small><br/>
+    <hr/>
+    <h5>Written by Alex.</h5>
+    <p>
+        Version: <!version>
+        <br/>
+        <a href="https://github.com/alexkazik/spawning-drunagor" target="_blank">Source</a>
+    </p>
+</div>
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.timed').forEach(function (element) {
+            element.style.display = 'block';
+        });
+    }, 15000)
+</script>
+<!--    <script data-trunk src="static/popperjs-core-v2.11.8/popper.min.js"></script>-->
+<script data-trunk src="static/bootstrap-v5.3.1/bootstrap.min.js"></script>
+</body>
+</html>
