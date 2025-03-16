@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Unofficial Drunagor Randomizer</title>
+    <base href="/spawning-drunagor/" />
+    <link rel="stylesheet" href="/spawning-drunagor/bootstrap-icons-v1.11.3/bootstrap-icons.css"/>
+    <link rel="stylesheet" href="/spawning-drunagor/bootstrap.min-dced0d11448f7854.css" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9"/>
+    
+    
+    
+<script type="module">
+import init, * as bindings from '/spawning-drunagor/spawning-drunagor-f7ed002a6a3840bf.js';
+const wasm = await init({ module_or_path: '/spawning-drunagor/spawning-drunagor-f7ed002a6a3840bf_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+    <link rel="icon" href="/spawning-drunagor/favicon-dcf9b6a5cd55d05f.png" integrity="sha384-iiLUHAmUzZbjYY8Qb/JcSv6bCnND4vWcdRMycX0/akLTyLFZgxlJIupiFUwhy/59"/>
+    <link rel="stylesheet" href="/spawning-drunagor/styles-1a774a5efc5a4bca.css" integrity="sha384-9e46QBPgCbI/qsls5r1tPcaRywrFDYkPhIgvu8ggoSZpN2evcXfmN5Z7DiaBeqHI"/>
+<link rel="modulepreload" href="/spawning-drunagor/spawning-drunagor-f7ed002a6a3840bf.js" crossorigin="anonymous" integrity="sha384-siPeJQp0UMYL7jWZN9srVape77oVl/2K1BOo9uMXM99+GtPrRi8oI+9vqjksbG7T"><link rel="preload" href="/spawning-drunagor/spawning-drunagor-f7ed002a6a3840bf_bg.wasm" crossorigin="anonymous" integrity="sha384-WnV/C3zXSMLZ+DM1YKnj+BCqfrmCLuRzHVLRSdIl0trRmSRxjpWtFyJJYTgJ3oXZ" as="fetch" type="application/wasm"></head>
+<body>
+<div class="container" style="text-align: center">
+    <h1>Unofficial Drunagor Randomizer</h1><br/>
+    <h2>Loading...</h2><br/>
+    <span class="timed" style="display: none">If you see this for too long please (force) reload.</span><br/>
+    <small class="timed" style="display: none">(Force Reload: <i class="bi bi-apple"></i>: <i class="bi bi-shift"></i><i
+            class="bi bi-command"></i>R, <i class="bi bi-windows"></i>: Ctrl+F5, <i class="bi bi-browser-safari"></i>:
+        <i class="bi bi-option"></i><i class="bi bi-command"></i>R)</small><br/>
+    <hr/>
+    <h5>Written by Alex.</h5>
+    <p>
+        Version: 0.1.0
+        <br/>
+        <a href="https://github.com/alexkazik/spawning-drunagor" target="_blank">Source</a>
+    </p>
+</div>
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.timed').forEach(function (element) {
+            element.style.display = 'block';
+        });
+    }, 15000)
+</script>
+<!--    <script data-trunk src="static/popperjs-core-v2.11.8/popper.min.js"></script>-->
+<script src="/spawning-drunagor/bootstrap.min-523e4030d7c1ab74.js" integrity="sha384-Rx+T1VzGupg4BHQYs2gCW9It+akI2MM/mndMCy36UVfodzcJcF0GGLxZIzObiEfa"></script>
+</body>
+</html>
