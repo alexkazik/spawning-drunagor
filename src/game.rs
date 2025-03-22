@@ -15,7 +15,7 @@ pub(crate) struct Monster {
 
 impl PartialEq for Monster {
     fn eq(&self, other: &Self) -> bool {
-        self.name_en.as_ptr() == other.name_en.as_ptr()
+        self.name_en == other.name_en
     }
 }
 

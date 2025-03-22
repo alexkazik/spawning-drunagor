@@ -123,18 +123,12 @@ impl SelectStore {
             .collect::<Vec<_>>();
 
         let mut todo = HashMap::<Color, HashSet<Level>>::new();
-        let mut used = HashSet::new();
         for (_n, c, l, m) in self.selected.borrow().iter() {
-            match m {
-                None => {
-                    if let Some(c) = c {
-                        if *l != Level::Special {
-                            todo.entry(*c).or_default().insert(*l);
-                        }
+            if m.is_none() {
+                if let Some(c) = c {
+                    if *l != Level::Special {
+                        todo.entry(*c).or_default().insert(*l);
                     }
-                }
-                Some(m) => {
-                    used.insert(*m);
                 }
             }
         }
