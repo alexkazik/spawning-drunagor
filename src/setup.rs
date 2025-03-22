@@ -53,39 +53,39 @@ impl Setup {
             m.pop();
         }
         let mut monsters = Vec::with_capacity(m.len());
-        for (f1s, f2) in m {
-            let f1 = f1s.as_bytes();
+        for (f1, f2) in m {
+            let f1b = f1.as_bytes();
             assert!(
-                f1.len() >= 2,
-                "unknown monster \"{f1s}\" on \"{}\"",
+                f1b.len() >= 2,
+                "unknown monster \"{f1}\" on \"{}\"",
                 fields.join(",")
             );
-            let f1_p2 = if f1.len() > 2 {
+            let f1_p2 = if f1b.len() > 2 {
                 assert_eq!(
-                    f1[2],
+                    f1b[2],
                     b' ',
-                    "unknown monster \"{f1s}\" on \"{}\"",
+                    "unknown monster \"{f1}\" on \"{}\"",
                     fields.join(",")
                 );
-                &f1[3..]
+                &f1b[3..]
             } else {
                 &[]
             };
-            let mut co = match f1[0] {
+            let mut co = match f1b[0] {
                 b'W' => Some(Color::White),
                 b'G' => Some(Color::Gray),
                 b'B' => Some(Color::Black),
                 b'C' => Some(Color::Commander),
                 b'S' => None,
-                _ => panic!("unknown color \"{f1s}\" on \"{}\"", fields.join(",")),
+                _ => panic!("unknown color \"{f1}\" on \"{}\"", fields.join(",")),
             };
-            let nu = match f1[1] {
+            let nu = match f1b[1] {
                 b'1' => Number::One,
                 b'2' => Number::Two,
                 b'3' => Number::Three,
                 b'4' => Number::Four,
                 b'5' => Number::Fife,
-                _ => panic!("unknown number \"{f1s}\" on \"{}\"", fields.join(",")),
+                _ => panic!("unknown number \"{f1}\" on \"{}\"", fields.join(",")),
             };
             let le = match co {
                 None => match f1_p2 {
@@ -95,7 +95,7 @@ impl Setup {
                     b"TEn" | // Torment of Envy
                     b"DEx" => None, // Dire Executioner
                     _ => panic!(
-                        "unknown special level \"{f1s}\" on \"{}\"",
+                        "unknown special level \"{f1}\" on \"{}\"",
                         fields.join(",")
                     ),
                 },
@@ -107,7 +107,7 @@ impl Setup {
                         None
                     }
                     _ => panic!(
-                        "unknown commander level \"{f1s}\" on \"{}\"",
+                        "unknown commander level \"{f1}\" on \"{}\"",
                         fields.join(",")
                     ),
                 },
@@ -116,10 +116,7 @@ impl Setup {
                     b"Fi" => Some(Level::Fighter),
                     b"Ve" => Some(Level::Veteran),
                     b"Ch" => Some(Level::Champion),
-                    _ => panic!(
-                        "unknown regular level \"{f1s}\" on \"{}\"",
-                        fields.join(",")
-                    ),
+                    _ => panic!("unknown regular level \"{f1}\" on \"{}\"", fields.join(",")),
                 },
             };
             let mo = if f2.is_empty() {
