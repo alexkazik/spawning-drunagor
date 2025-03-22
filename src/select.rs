@@ -26,10 +26,15 @@ use yewdux::{Dispatch, Reducer, Store, use_store};
 #[repr(u8)]
 #[allow(dead_code)] // only constructed via enum_tools
 pub(crate) enum Number {
+    #[enum_tools(rename = "1")]
     One = 1,
+    #[enum_tools(rename = "2")]
     Two = 2,
+    #[enum_tools(rename = "3")]
     Three = 3,
+    #[enum_tools(rename = "4")]
     Four = 4,
+    #[enum_tools(rename = "5")]
     Fife = 5,
 }
 
