@@ -51,6 +51,7 @@ pub(crate) struct SelectStore {
             Option<Color>,
             Level,
             Option<&'static Monster>,
+            bool,
         )>,
     >,
     current_number: Option<Number>,
@@ -94,7 +95,7 @@ impl SelectStore {
         self.selected
             .borrow_mut()
             .iter_mut()
-            .for_each(|(_, _, _, m)| {
+            .for_each(|(_, _, _, m, _)| {
                 if let Some(sm) = m {
                     if !settings.content.contains(&sm.content) {
                         *m = None;
@@ -123,7 +124,7 @@ impl SelectStore {
             .collect::<Vec<_>>();
 
         let mut todo = HashMap::<Color, HashSet<Level>>::new();
-        for (_n, c, l, m) in self.selected.borrow().iter() {
+        for (_n, c, l, m, _) in self.selected.borrow().iter() {
             if m.is_none() {
                 if let Some(c) = c {
                     if *l != Level::Special {
@@ -146,11 +147,13 @@ impl SelectStore {
         let Some(selected) = selected else {
             return;
         };
-        for (n, c, l, m) in self.selected.borrow().iter() {
-            if m.is_none() && c.is_some() && *l != Level::Special {
-                o.push((*n, *c, *l, selected.get(&(c.unwrap(), *l)).copied(), false));
-            } else {
-                o.push((*n, *c, *l, *m, true));
+        for (n, c, l, m, hi) in self.selected.borrow().iter() {
+            if !*hi {
+                if m.is_none() && c.is_some() && *l != Level::Special {
+                    o.push((*n, *c, *l, selected.get(&(c.unwrap(), *l)).copied(), false));
+                } else {
+                    o.push((*n, *c, *l, *m, true));
+                }
             }
         }
     }
@@ -210,6 +213,7 @@ impl Reducer<SelectStore> for Option<&'static Monster> {
             Some(state.current_color),
             state.current_level,
             self,
+            false,
         ));
         state.output(None, false);
         rc_state
@@ -262,8 +266,8 @@ impl Reducer<SelectStore> for Preset {
                     {
                         let mut selected = state.selected.borrow_mut();
                         selected.clear();
-                        for (n, c, l, m) in &setup.monsters {
-                            selected.push((Some(*n), *c, l.unwrap_or(Level::Special), *m));
+                        for (n, c, l, m, hi) in &setup.monsters {
+                            selected.push((Some(*n), *c, l.unwrap_or(Level::Special), *m, *hi));
                         }
                     }
                     state.output(None, false);
@@ -371,12 +375,12 @@ pub(crate) fn Select() -> Html {
             </div>
         }
     } else {
-        let list = store.selected.borrow().iter().enumerate().map(|(i, (n, c, l, om))| {
+        let list = store.selected.borrow().iter().enumerate().map(|(i, (n, c, l, om, hi))| {
             let trash_onclick = dispatch.apply_callback(move |_| Remove(i));
             if let Some(m) = om {
                 html! {
                     <tr>
-                        <td>{BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}</td>
+                        <td>if *hi {{"*"}} else {{BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}}</td>
                         <td>{c.map_or("",|c|c.short(settings.game_language))}{" - "}{m.name(settings.game_language)}{" - "}{l.name(settings.game_language)}</td>
                         <td>
                             <Button

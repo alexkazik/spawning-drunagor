@@ -1,5 +1,5 @@
 Core,book,9,9,W1 Ro,Skeleton Archer,G2 Ro,,W3 Ro,Skeleton Archer,G4 Ro,,W5 Ro,Skeleton Archer,,,,,,,,,
-Core,book,17,17,G1 Ro,,B1 Ro,,G2 Ro,,W2 Fi,,B3 Ro,,W3 Fi,,G4 Ro,,W4 Fi,,G5 Ro,,W5 Fi
+Core,book,17,17,G1 Ro,,B1 Ro,,G2 Ro,,W2 Fi,,B3 Ro,,W3 Fi,,G4 Ro,,W4 Fi,,G5 Ro,,W5 Fi,,Exclude,Shadow Vampire
 Core,book,18,18,W1 Fi,,G2 Ro,,W3 Fi,,G4 Ro,,B5 Ro,,,,,,,,,,
 Core,book,21,21,B1 Ro,,G1 Fi,,W2 Fi,,G3 Fi,,W4 Fi,,G5 Fi,,,,,,,,
 Core,book,25,25,G1 Fi,,B1 Fi,,W2 Fi,,G3 Fi,,W4 Fi,,G5 Fi,,,,,,,,

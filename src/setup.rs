@@ -37,6 +37,7 @@ pub(crate) struct Setup {
         Option<Color>,
         Option<Level>,
         Option<&'static Monster>,
+        bool,
     )>,
 }
 
@@ -54,70 +55,75 @@ impl Setup {
         }
         let mut monsters = Vec::with_capacity(m.len());
         for (f1, f2) in m {
-            let f1b = f1.as_bytes();
-            assert!(
-                f1b.len() >= 2,
-                "unknown monster \"{f1}\" on \"{}\"",
-                fields.join(",")
-            );
-            let f1_p2 = if f1b.len() > 2 {
-                assert_eq!(
-                    f1b[2],
-                    b' ',
+            let (nu, co, le, hi) = if f1 == "Exclude" {
+                (Number::One, None, None, true)
+            } else {
+                let f1b = f1.as_bytes();
+                assert!(
+                    f1b.len() >= 2,
                     "unknown monster \"{f1}\" on \"{}\"",
                     fields.join(",")
                 );
-                &f1b[3..]
-            } else {
-                &[]
-            };
-            let mut co = match f1b[0] {
-                b'W' => Some(Color::White),
-                b'G' => Some(Color::Gray),
-                b'B' => Some(Color::Black),
-                b'C' => Some(Color::Commander),
-                b'S' => None,
-                _ => panic!("unknown color \"{f1}\" on \"{}\"", fields.join(",")),
-            };
-            let nu = match f1b[1] {
-                b'1' => Number::One,
-                b'2' => Number::Two,
-                b'3' => Number::Three,
-                b'4' => Number::Four,
-                b'5' => Number::Fife,
-                _ => panic!("unknown number \"{f1}\" on \"{}\"", fields.join(",")),
-            };
-            let le = match co {
-                None => match f1_p2 {
-                    b"MuA" | // Murderous Apparition
-                    b"MWr" | // Manifestation of Wrath
-                    b"DrA" | // Drifting Apparition
-                    b"TEn" | // Torment of Envy
-                    b"DEx" => None, // Dire Executioner
-                    _ => panic!(
-                        "unknown special level \"{f1}\" on \"{}\"",
+                let f1_p2 = if f1b.len() > 2 {
+                    assert_eq!(
+                        f1b[2],
+                        b' ',
+                        "unknown monster \"{f1}\" on \"{}\"",
                         fields.join(",")
-                    ),
-                },
-                Some(Color::Commander) => match f1_p2 {
-                    b"" => None,
-                    b"CBr" => {
-                        // Commander Brute, change to special
-                        co = None;
-                        None
-                    }
-                    _ => panic!(
-                        "unknown commander level \"{f1}\" on \"{}\"",
-                        fields.join(",")
-                    ),
-                },
-                Some(Color::White | Color::Gray | Color::Black) => match f1_p2 {
-                    b"Ro" => Some(Level::Rookie),
-                    b"Fi" => Some(Level::Fighter),
-                    b"Ve" => Some(Level::Veteran),
-                    b"Ch" => Some(Level::Champion),
-                    _ => panic!("unknown regular level \"{f1}\" on \"{}\"", fields.join(",")),
-                },
+                    );
+                    &f1b[3..]
+                } else {
+                    &[]
+                };
+                let mut co = match f1b[0] {
+                    b'W' => Some(Color::White),
+                    b'G' => Some(Color::Gray),
+                    b'B' => Some(Color::Black),
+                    b'C' => Some(Color::Commander),
+                    b'S' => None,
+                    _ => panic!("unknown color \"{f1}\" on \"{}\"", fields.join(",")),
+                };
+                let nu = match f1b[1] {
+                    b'1' => Number::One,
+                    b'2' => Number::Two,
+                    b'3' => Number::Three,
+                    b'4' => Number::Four,
+                    b'5' => Number::Fife,
+                    _ => panic!("unknown number \"{f1}\" on \"{}\"", fields.join(",")),
+                };
+                let le = match co {
+                    None => match f1_p2 {
+                        b"MuA" | // Murderous Apparition
+                        b"MWr" | // Manifestation of Wrath
+                        b"DrA" | // Drifting Apparition
+                        b"TEn" | // Torment of Envy
+                        b"DEx" => None, // Dire Executioner
+                        _ => panic!(
+                            "unknown special level \"{f1}\" on \"{}\"",
+                            fields.join(",")
+                        ),
+                    },
+                    Some(Color::Commander) => match f1_p2 {
+                        b"" => None,
+                        b"CBr" => {
+                            // Commander Brute, change to special
+                            co = None;
+                            None
+                        }
+                        _ => panic!(
+                            "unknown commander level \"{f1}\" on \"{}\"",
+                            fields.join(",")
+                        ),
+                    },
+                    Some(Color::White | Color::Gray | Color::Black) => match f1_p2 {
+                        b"Ro" => Some(Level::Rookie),
+                        b"Fi" => Some(Level::Fighter),
+                        b"Ve" => Some(Level::Veteran),
+                        b"Ch" => Some(Level::Champion),
+                        _ => panic!("unknown regular level \"{f1}\" on \"{}\"", fields.join(",")),
+                    },
+                };
+                (nu, co, le, false)
             };
             let mo = if f2.is_empty() {
                 None
@@ -143,7 +149,7 @@ impl Setup {
 
                 Some(mo)
             };
-            monsters.push((nu, co, le, mo));
+            monsters.push((nu, co, le, mo, hi));
         }
         Self {
             content: Content::iter()
