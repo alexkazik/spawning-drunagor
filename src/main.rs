@@ -377,6 +377,10 @@ fn App() -> Html {
                   </h5>
 
                   <div class="ms-auto">
+                    <a target="_blank" href="https://alexkazik.github.io/boardgames.html">{"My other board game tools"}</a>
+                  </div>
+
+                  <div class="ms-auto">
                     {"Version: "}{env!("CARGO_PKG_VERSION")}
                     <a
                       href="https://github.com/alexkazik/spawning-drunagor"
