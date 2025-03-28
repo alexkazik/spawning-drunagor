@@ -381,6 +381,10 @@ fn App() -> Html {
                   </div>
 
                   <div class="ms-auto">
+                    {"Favicon by "}<a target="_blank" href="https://boardgameheaven.eu">{"Board Game Heaven"}</a>
+                  </div>
+
+                  <div class="ms-auto">
                     {"Version: "}{env!("CARGO_PKG_VERSION")}
                     <a
                       href="https://github.com/alexkazik/spawning-drunagor"
