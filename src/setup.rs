@@ -1,5 +1,8 @@
-use crate::game::{Color, Content, ContentType, GameLanguage, Level, MONSTERS, Monster};
+use crate::game::{
+    Chapter, Color, Content, GameLanguage, Level, MONSTER_VERY_SPECIAL, MONSTERS, Monster, Special,
+};
 use crate::select::Number;
+use core::str::FromStr;
 #[cfg(feature = "debug")]
 use serde::Serialize;
 use yewdux::Store;
@@ -14,7 +17,9 @@ impl Default for SetupStore {
     fn default() -> Self {
         let setups = include_str!("../setup.csv")
             .lines()
-            .map(|l| Setup::read(&l.split(',').collect::<Vec<_>>()))
+            .map(|l| l.split(',').collect::<Vec<_>>())
+            .filter(|l| l.len() >= 4)
+            .map(|l| Setup::read(&l))
             .collect();
 
         #[cfg(feature = "debug")]
@@ -28,24 +33,19 @@ impl Default for SetupStore {
 #[derive(PartialEq)]
 pub(crate) struct Setup {
     pub(crate) content: Content,
-    pub(crate) content_type: ContentType,
+    pub(crate) chapter: Chapter,
     name_en: &'static str,
     name_de: &'static str,
     #[allow(clippy::type_complexity)]
-    pub(crate) monsters: Vec<(
-        Number,
-        Option<Color>,
-        Option<Level>,
-        Option<&'static Monster>,
-        bool,
-    )>,
+    pub(crate) monsters: Vec<(Number, Option<Color>, Level, Option<&'static Monster>, bool)>,
 }
 
 impl Setup {
     fn read(fields: &[&'static str]) -> Self {
         let mut m = fields[4..]
-            .chunks_exact(2)
-            .map(|x| (x[0], x[1]))
+            .chunks(2)
+            .map(|x| (x[0], x.get(1).map_or("", |y| *y)))
+            .filter(|(x, y)| !x.is_empty() || !y.is_empty())
             .collect::<Vec<_>>();
         while let Some(x) = m.last() {
             if !x.0.is_empty() || !x.1.is_empty() {
@@ -55,8 +55,8 @@ impl Setup {
         }
         let mut monsters = Vec::with_capacity(m.len());
         for (f1, f2) in m {
-            let (nu, co, le, hi) = if f1 == "Exclude" {
-                (Number::One, None, None, true)
+            let (nu, mut co, mut le, hi) = if f1 == "Exclude" {
+                (Number::One, None, Level::Special(None), true)
             } else {
                 let f1b = f1.as_bytes();
                 assert!(
@@ -75,7 +75,7 @@ impl Setup {
                 } else {
                     &[]
                 };
-                let mut co = match f1b[0] {
+                let co = match f1b[0] {
                     b'W' => Some(Color::White),
                     b'G' => Some(Color::Gray),
                     b'B' => Some(Color::Black),
@@ -93,33 +93,21 @@ impl Setup {
                 };
                 let le = match co {
                     None => match f1_p2 {
-                        b"MuA" | // Murderous Apparition
-                        b"MWr" | // Manifestation of Wrath
-                        b"DrA" | // Drifting Apparition
-                        b"TEn" | // Torment of Envy
-                        b"DEx" => None, // Dire Executioner
-                        _ => panic!(
-                            "unknown special level \"{f1}\" on \"{}\"",
-                            fields.join(",")
-                        ),
+                        b"" => Level::Special(None),
+                        _ => panic!("unknown special level \"{f1}\" on \"{}\"", fields.join(",")),
                     },
                     Some(Color::Commander) => match f1_p2 {
-                        b"" => None,
-                        b"CBr" => {
-                            // Commander Brute, change to special
-                            co = None;
-                            None
-                        }
+                        b"" => Level::Special(None),
                         _ => panic!(
                             "unknown commander level \"{f1}\" on \"{}\"",
                             fields.join(",")
                         ),
                     },
                     Some(Color::White | Color::Gray | Color::Black) => match f1_p2 {
-                        b"Ro" => Some(Level::Rookie),
-                        b"Fi" => Some(Level::Fighter),
-                        b"Ve" => Some(Level::Veteran),
-                        b"Ch" => Some(Level::Champion),
+                        b"Ro" => Level::Rookie,
+                        b"Fi" => Level::Fighter,
+                        b"Ve" => Level::Veteran,
+                        b"Ch" => Level::Champion,
                         _ => panic!("unknown regular level \"{f1}\" on \"{}\"", fields.join(",")),
                     },
                 };
@@ -127,6 +115,36 @@ impl Setup {
             };
             let mo = if f2.is_empty() {
                 None
+            } else if let Some(f2) = f2.strip_prefix('*') {
+                let special = Special::iter()
+                    .find(|s| s.name(GameLanguage::En) == f2)
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "unknown special monster \"{}\" on \"{}\"",
+                            f2,
+                            fields.join(",")
+                        )
+                    });
+
+                le = Level::Special(Some(special));
+
+                if special == Special::CommanderBrute {
+                    co = Some(Color::Commander);
+                }
+
+                if let Some(mo) = special.monster() {
+                    Some(
+                        MONSTERS
+                            .iter()
+                            .copied()
+                            .find(|x| x.name(GameLanguage::En) == mo)
+                            .unwrap_or_else(|| {
+                                panic!("unknown monster \"{}\" on \"{}\"", mo, fields.join(","))
+                            }),
+                    )
+                } else {
+                    Some(MONSTER_VERY_SPECIAL)
+                }
             } else {
                 let mo = MONSTERS
                     .iter()
@@ -155,11 +173,13 @@ impl Setup {
             content: Content::iter()
                 .find(|x| x.name(GameLanguage::En) == fields[0])
                 .unwrap_or_else(|| panic!("unknown content on \"{}\"", fields.join(","))),
-            content_type: match fields.get(1) {
-                Some(&"book") => ContentType::Book,
-                Some(&"door") => ContentType::Door,
-                _ => panic!("unknown content_type on \"{}\"", fields.join(",")),
-            },
+            chapter: fields
+                .get(1)
+                .and_then(|c| usize::from_str(c).ok())
+                .map_or_else(
+                    || panic!("unknown chapter on \"{}\"", fields.join(",")),
+                    Chapter,
+                ),
             name_en: fields[2],
             name_de: fields[3],
             monsters,

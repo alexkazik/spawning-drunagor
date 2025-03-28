@@ -4,7 +4,7 @@
 #![allow(clippy::too_many_lines)]
 
 use crate::Settings;
-use crate::game::{Color, Content, ContentType, GameLanguage, Level, MONSTERS, Monster};
+use crate::game::{Chapter, Color, Content, GameLanguage, Level, MONSTERS, Monster};
 use crate::setup::SetupStore;
 use enum_tools::EnumTools;
 use rand::rng;
@@ -40,9 +40,6 @@ pub(crate) enum Number {
 
 #[derive(Clone, PartialEq, Store)]
 pub(crate) struct SelectStore {
-    // preset
-    content: Content,
-    content_type: ContentType,
     // custom
     #[allow(clippy::type_complexity)]
     selected: Mrc<
@@ -68,15 +65,12 @@ pub(crate) struct SelectStore {
             bool,
         )>,
     >,
-    pub(crate) setup: Option<(Content, ContentType, &'static str)>,
+    pub(crate) setup: Option<(Content, Chapter, &'static str)>,
 }
 
 impl Default for SelectStore {
     fn default() -> Self {
         Self {
-            // preset
-            content: Content::Core,
-            content_type: ContentType::Book,
             // custom
             selected: Mrc::new(vec![]),
             current_number: None,
@@ -127,9 +121,7 @@ impl SelectStore {
         for (_n, c, l, m, _) in self.selected.borrow().iter() {
             if m.is_none() {
                 if let Some(c) = c {
-                    if *l != Level::Special {
-                        todo.entry(*c).or_default().insert(*l);
-                    }
+                    todo.entry(*c).or_default().insert(*l);
                 }
             }
         }
@@ -149,7 +141,7 @@ impl SelectStore {
         };
         for (n, c, l, m, hi) in self.selected.borrow().iter() {
             if !*hi {
-                if m.is_none() && c.is_some() && *l != Level::Special {
+                if m.is_none() && c.is_some() {
                     o.push((*n, *c, *l, selected.get(&(c.unwrap(), *l)).copied(), false));
                 } else {
                     o.push((*n, *c, *l, *m, true));
@@ -241,7 +233,7 @@ impl Reducer<SelectStore> for Remove {
 
 enum Preset {
     Content(Content),
-    ContentType(ContentType),
+    Chapter(Chapter),
     Show(usize),
 }
 
@@ -250,31 +242,39 @@ impl Reducer<SelectStore> for Preset {
         let state = Rc::make_mut(&mut rc_state);
         match self {
             Preset::Content(c) => {
-                state.content = c;
+                Dispatch::<Settings>::global().reduce_mut(|settings| {
+                    settings.preset_content = c;
+                });
             }
-            Preset::ContentType(ct) => {
-                state.content_type = ct;
+            Preset::Chapter(ct) => {
+                Dispatch::<Settings>::global().reduce_mut(|settings| {
+                    settings.preset_chapter = ct;
+                });
             }
             Preset::Show(index) => {
+                let rc_settings = Dispatch::<Settings>::global().get();
                 let setup = Dispatch::<SetupStore>::global().get();
                 if let Some(setup) = setup
                     .setups
                     .iter()
-                    .filter(|s| s.content == state.content && s.content_type == state.content_type)
+                    .filter(|s| {
+                        s.content == rc_settings.preset_content
+                            && s.chapter == rc_settings.preset_chapter
+                    })
                     .nth(index)
                 {
                     {
                         let mut selected = state.selected.borrow_mut();
                         selected.clear();
                         for (n, c, l, m, hi) in &setup.monsters {
-                            selected.push((Some(*n), *c, l.unwrap_or(Level::Special), *m, *hi));
+                            selected.push((Some(*n), *c, *l, *m, *hi));
                         }
                     }
                     state.output(None, false);
                     let rc_settings = Dispatch::<Settings>::global().get();
                     state.setup = Some((
                         setup.content,
-                        setup.content_type,
+                        setup.chapter,
                         setup.name(rc_settings.game_language),
                     ));
                 }
@@ -305,7 +305,7 @@ pub(crate) fn Select() -> Html {
                         name="preset_content"
                         id={id.clone()}
                         autocomplete="off"
-                        checked={store.content == c}
+                        checked={settings.preset_content == c}
                         onclick={onclick}
                     />
                     <label class="btn btn-outline-primary" for={id}>{c.name(settings.game_language)}</label>
@@ -313,17 +313,17 @@ pub(crate) fn Select() -> Html {
             }
         });
 
-        let mut content_types = setup
+        let mut chapters = setup
             .setups
             .iter()
-            .filter(|s| s.content == store.content)
-            .map(|s| s.content_type)
+            .filter(|s| s.content == settings.preset_content)
+            .map(|s| s.chapter)
             .collect::<Vec<_>>();
-        content_types.sort();
-        content_types.dedup();
-        let content_types = content_types.into_iter().map(|ct| {
-            let onclick = dispatch.apply_callback(move |_| Preset::ContentType(ct));
-            let id = format!("preset_content_type_{}", ct.name(GameLanguage::En));
+        chapters.sort();
+        chapters.dedup();
+        let content_types = chapters.into_iter().map(|ct| {
+            let onclick = dispatch.apply_callback(move |_| Preset::Chapter(ct));
+            let id = format!("preset_content_type_{}", ct.0);
             html! {
                 <>
                     <input
@@ -332,10 +332,10 @@ pub(crate) fn Select() -> Html {
                         name="preset_content_type"
                         id={id.clone()}
                         autocomplete="off"
-                        checked={store.content_type == ct}
+                        checked={settings.preset_chapter == ct}
                         onclick={onclick}
                     />
-                    <label class="btn btn-outline-primary" for={id}>{ct.name(settings.game_language)}</label>
+                    <label class="btn btn-outline-primary" for={id}>{ct.0}</label>
                 </>
             }
         });
@@ -343,7 +343,9 @@ pub(crate) fn Select() -> Html {
         let entries = setup
             .setups
             .iter()
-            .filter(|s| s.content == store.content && s.content_type == store.content_type)
+            .filter(|s| {
+                s.content == settings.preset_content && s.chapter == settings.preset_chapter
+            })
             .collect::<Vec<_>>();
         let entries = entries.into_iter().enumerate().map(|(i, setup)| {
             let onclick = dispatch.apply_callback(move |_| Preset::Show(i));
@@ -455,10 +457,13 @@ pub(crate) fn Select() -> Html {
                 }
             });
 
-        let levels = Level::iter()
-            .filter(|level| *level != Level::Special)
+        let levels = [Level::Rookie,
+            Level::Fighter,
+            Level::Veteran,
+            Level::Champion,
+        ].into_iter()
             .map(|level| {
-                let id = format!("level:{}", level.into());
+                let id = format!("level:{}", level.id());
                 let onchange = dispatch.apply_callback(move |_| level);
                 html! {
                     <>

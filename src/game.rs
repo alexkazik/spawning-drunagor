@@ -1,6 +1,5 @@
 use enum_tools::EnumTools;
-#[cfg(feature = "debug")]
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 
 #[cfg_attr(feature = "debug", derive(Debug, Serialize))]
@@ -103,27 +102,9 @@ impl Content {
     }
 }
 
-#[cfg_attr(feature = "debug", derive(Debug, Serialize))]
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum ContentType {
-    Book,
-    Door,
-}
-
-impl ContentType {
-    pub(crate) fn name(self, game_language: GameLanguage) -> &'static str {
-        match game_language {
-            GameLanguage::En => match self {
-                ContentType::Book => "Book",
-                ContentType::Door => "Door",
-            },
-            GameLanguage::De => match self {
-                ContentType::Book => "Buch",
-                ContentType::Door => "Tür",
-            },
-        }
-    }
-}
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
+pub(crate) struct Chapter(pub usize);
 
 #[cfg_attr(feature = "debug", derive(Debug, Serialize))]
 #[derive(Copy, Clone, EnumTools, PartialEq, Eq, Hash)]
@@ -193,15 +174,77 @@ impl Color {
 #[derive(Copy, Clone, EnumTools, PartialEq, Eq, Hash)]
 #[enum_tools(iter, into)]
 #[repr(u8)]
+#[allow(dead_code)]
+pub(crate) enum Special {
+    UndeadKing,
+    UndeadKingsMinion,
+    CommanderBrute,
+    MurderousApparition,
+    ManifestationOfWrath,
+    DrifterApparition,
+    TormentOfEnvy,
+    DireExecutioner,
+}
+
+impl Special {
+    pub(crate) fn name(self, game_language: GameLanguage) -> &'static str {
+        match game_language {
+            GameLanguage::En => match self {
+                Special::UndeadKing => "Undead King",
+                Special::UndeadKingsMinion => "Undead King's Minion",
+                Special::CommanderBrute => "Brute",
+                Special::MurderousApparition => "Murderous Apparition",
+                Special::ManifestationOfWrath => "Manifestation of Wrath",
+                Special::DrifterApparition => "Drifter Apparition",
+                Special::TormentOfEnvy => "Torment of Envy",
+                Special::DireExecutioner => "Dire Executioner",
+            },
+            GameLanguage::De => match self {
+                Special::UndeadKing => "Untoter König",
+                Special::UndeadKingsMinion => "Undead King's Minion",
+                Special::CommanderBrute => "Scheusal",
+                Special::MurderousApparition => "Mordende Erscheinung",
+                Special::ManifestationOfWrath => "Manifestation des Zorns",
+                Special::DrifterApparition => "Treibende Erscheinung",
+                Special::TormentOfEnvy => "Qual der Gier",
+                Special::DireExecutioner => "Henker des Schreckens",
+            },
+        }
+    }
+
+    pub(crate) fn monster(self) -> Option<&'static str> {
+        match self {
+            Special::UndeadKing | Special::CommanderBrute => None, // Special
+            Special::UndeadKingsMinion => Some("Skeleton Archer"),
+            Special::MurderousApparition => Some("Shadow Vampire"),
+            Special::ManifestationOfWrath => Some("Shadow Knight"),
+            Special::TormentOfEnvy => Some("Abomination"),
+            Special::DrifterApparition | Special::DireExecutioner => Some("Executioner"),
+        }
+    }
+}
+
+#[cfg_attr(feature = "debug", derive(Debug, Serialize))]
+#[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub(crate) enum Level {
     Rookie,
     Fighter,
     Veteran,
     Champion,
-    Special,
+    Special(Option<Special>),
 }
 
 impl Level {
+    pub(crate) fn id(self) -> &'static str {
+        match self {
+            Level::Rookie => "Ro",
+            Level::Fighter => "Fi",
+            Level::Veteran => "Ve",
+            Level::Champion => "Ch",
+            Level::Special(_) => "Sp",
+        }
+    }
+
     pub(crate) fn name(self, game_language: GameLanguage) -> &'static str {
         match game_language {
             GameLanguage::En => match self {
@@ -209,14 +252,14 @@ impl Level {
                 Level::Fighter => "Fighter",
                 Level::Veteran => "Veteran",
                 Level::Champion => "Champion",
-                Level::Special => "Scenario specific",
+                Level::Special(s) => s.map_or("", |s| s.name(game_language)),
             },
             GameLanguage::De => match self {
                 Level::Rookie => "Novize",
                 Level::Fighter => "Kämpfer",
                 Level::Veteran => "Veteran",
                 Level::Champion => "Meister",
-                Level::Special => "Szenario spezifisch",
+                Level::Special(s) => s.map_or("", |s| s.name(game_language)),
             },
         }
     }
@@ -542,6 +585,14 @@ pub(crate) const MONSTERS: &[&Monster] = &[
         has_complex: false,
     },
 ];
+
+pub(crate) const MONSTER_VERY_SPECIAL: &Monster = &Monster {
+    name_en: "",
+    name_de: "",
+    content: Content::Core,
+    color: Color::Commander,
+    has_complex: false,
+};
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Copy, Clone, Eq, PartialEq, EnumTools, serde::Serialize, serde::Deserialize)]

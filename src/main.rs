@@ -7,9 +7,7 @@
 #![allow(clippy::too_many_lines)]
 #![allow(clippy::unsafe_derive_deserialize)]
 
-extern crate alloc;
-
-use crate::game::{Content, GameLanguage};
+use crate::game::{Chapter, Content, GameLanguage};
 use crate::msg::MsgLanguage;
 use crate::select::{Number, Randomize, Select, SelectStore};
 use getrandom as _; // is only used indirectly through rand but is required to activate feature
@@ -35,6 +33,8 @@ pub(crate) struct Settings {
     pub(crate) content: HashSet<Content>,
     pub(crate) preset: bool,
     pub(crate) players: Number,
+    pub(crate) preset_content: Content,
+    pub(crate) preset_chapter: Chapter,
 }
 
 impl Default for Settings {
@@ -45,6 +45,8 @@ impl Default for Settings {
             content: HashSet::from([Content::Core]),
             preset: true,
             players: Number::Fife,
+            preset_content: Content::Core,
+            preset_chapter: Chapter(1),
         }
     }
 }
@@ -176,13 +178,30 @@ fn App() -> Html {
                     fade = "opacity: 0.5";
                 }
             }
-            html! {
-                <tr>
-                    <td style={fade}>
-                        {BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}{" "}
-                        {c.map_or("",|c|c.short(settings.game_language))}{" - "}{m.name(settings.game_language)}{if *p {"*"}else{""}}{" - "}{l.name(settings.game_language)}
-                    </td>
-                </tr>
+            if *c == Some(game::Color::Commander) {
+                html! {
+                    <tr>
+                        <td style={fade}>
+                            {BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}{" "}
+                            {c.map_or("",|c|c.short(settings.game_language))}{" - "}
+                            {m.name(settings.game_language)}
+                            {l.name(settings.game_language)}
+                            {if *p {"*"}else{""}}
+                        </td>
+                    </tr>
+                }
+            } else {
+                html! {
+                    <tr>
+                        <td style={fade}>
+                            {BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}{" "}
+                            if let Some(c) = c {
+                                {c.short(settings.game_language)}{" - "}
+                            }
+                            {m.name(settings.game_language)}{if *p {"*"}else{""}}{" - "}{l.name(settings.game_language)}
+                        </td>
+                    </tr>
+                }
             }
         } else {
             html! {}
@@ -307,10 +326,10 @@ fn App() -> Html {
                       </h2>
                       <div id="collapseThree" class={"accordion-collapse collapse"} data-bs-parent="#accordionExample">
                         <div class="accordion-body">
-                            if let Some((content, content_type, name)) = &select.setup {
+                            if let Some((content, chapter, name)) = &select.setup {
                                 <Alert style={Color::Light}>
                                     {content.name(settings.game_language)}{" - "}
-                                    {content_type.name(settings.game_language)}{" - "}
+                                    {chapter.0}{" - "}
                                     {name}
                                 </Alert>
                             }
