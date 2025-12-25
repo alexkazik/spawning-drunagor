@@ -90,11 +90,11 @@ impl SelectStore {
             .borrow_mut()
             .iter_mut()
             .for_each(|(_, _, _, m, _)| {
-                if let Some(sm) = m {
-                    if !settings.content.contains(&sm.content) {
-                        *m = None;
-                        changed = true;
-                    }
+                if let Some(sm) = m
+                    && !settings.content.contains(&sm.content)
+                {
+                    *m = None;
+                    changed = true;
                 }
             });
         if changed {
@@ -119,10 +119,10 @@ impl SelectStore {
 
         let mut todo = HashMap::<Color, HashSet<Level>>::new();
         for (_n, c, l, m, _) in self.selected.borrow().iter() {
-            if m.is_none() {
-                if let Some(c) = c {
-                    todo.entry(*c).or_default().insert(*l);
-                }
+            if m.is_none()
+                && let Some(c) = c
+            {
+                todo.entry(*c).or_default().insert(*l);
             }
         }
 

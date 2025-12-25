@@ -173,10 +173,8 @@ fn App() -> Html {
     let list = select.output.borrow().iter().map(|(n, c, l, om, p)| {
         if let Some(m) = om {
             let mut fade = "";
-            if let Some(n) = n {
-                if *n > settings.players {
-                    fade = "opacity: 0.5";
-                }
+            if let Some(n) = n && *n > settings.players {
+                fade = "opacity: 0.5";
             }
             if *c == Some(game::Color::Commander) {
                 html! {
