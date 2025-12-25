@@ -176,6 +176,7 @@ impl Color {
 #[repr(u8)]
 #[allow(dead_code)]
 pub(crate) enum Special {
+    // Core
     UndeadKing,
     UndeadKingsMinion,
     CommanderBrute,
@@ -184,12 +185,24 @@ pub(crate) enum Special {
     DrifterApparition,
     TormentOfEnvy,
     DireExecutioner,
+    // Apocalypse
+    SowerCultist,
+    FellWarcaller,
+    ScenarioCommander,
+    UnstableDevourer,
+    PlagueHorseman,
+    WarHorsewoman,
+    FamineHorseman,
+    DeathHorsewoman,
+    // Awakening
+    SkeletonSentry,
 }
 
 impl Special {
     pub(crate) fn name(self, game_language: GameLanguage) -> &'static str {
         match game_language {
             GameLanguage::En => match self {
+                // Core
                 Special::UndeadKing => "Undead King",
                 Special::UndeadKingsMinion => "Undead King's Minion",
                 Special::CommanderBrute => "Brute",
@@ -198,8 +211,20 @@ impl Special {
                 Special::DrifterApparition => "Drifter Apparition",
                 Special::TormentOfEnvy => "Torment of Envy",
                 Special::DireExecutioner => "Dire Executioner",
+                // Apocalypse
+                Special::SowerCultist => "Sower Cultist",
+                Special::FellWarcaller => "Fell Warcaller",
+                Special::ScenarioCommander => "Scenario Commander",
+                Special::UnstableDevourer => "Unstable Devourer",
+                Special::PlagueHorseman => "Plague Horseman",
+                Special::WarHorsewoman => "War Horsewoman",
+                Special::FamineHorseman => "Famine Horseman",
+                Special::DeathHorsewoman => "Death Horsewoman",
+                // Awakening
+                Special::SkeletonSentry => "Skeleton Sentry",
             },
             GameLanguage::De => match self {
+                // Core
                 Special::UndeadKing => "Untoter König",
                 Special::UndeadKingsMinion => "Undead King's Minion",
                 Special::CommanderBrute => "Scheusal",
@@ -208,18 +233,38 @@ impl Special {
                 Special::DrifterApparition => "Treibende Erscheinung",
                 Special::TormentOfEnvy => "Qual der Gier",
                 Special::DireExecutioner => "Henker des Schreckens",
+                // Apocalypse
+                Special::SowerCultist => "Kultistensäer",
+                Special::FellWarcaller => "Dämonenschreier",
+                Special::ScenarioCommander => "Szenariokommandant",
+                Special::UnstableDevourer => "Verzehrender Golem",
+                Special::PlagueHorseman => "Reiter der Pest",
+                Special::WarHorsewoman => "Reiterin des Krieges",
+                Special::FamineHorseman => "Reiter des Hungers",
+                Special::DeathHorsewoman => "Reiterin des Todes",
+                // Awakening
+                Special::SkeletonSentry => "Skelettwächter",
             },
         }
     }
 
     pub(crate) fn monster(self) -> Option<&'static str> {
         match self {
-            Special::UndeadKing | Special::CommanderBrute => None, // Special
-            Special::UndeadKingsMinion => Some("Skeleton Archer"),
+            Special::UndeadKing
+            | Special::CommanderBrute
+            | Special::ScenarioCommander
+            | Special::PlagueHorseman
+            | Special::WarHorsewoman
+            | Special::FamineHorseman
+            | Special::DeathHorsewoman => None, // Special
+            Special::UndeadKingsMinion | Special::SkeletonSentry => Some("Skeleton Archer"),
             Special::MurderousApparition => Some("Shadow Vampire"),
             Special::ManifestationOfWrath => Some("Shadow Knight"),
             Special::TormentOfEnvy => Some("Abomination"),
             Special::DrifterApparition | Special::DireExecutioner => Some("Executioner"),
+            Special::FellWarcaller => Some("Shadow Witch"),
+            Special::SowerCultist => Some("Shadow Cultist"),
+            Special::UnstableDevourer => Some("Rotten Flesh"),
         }
     }
 }
