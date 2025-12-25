@@ -185,7 +185,6 @@ fn App() -> Html {
                             {BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}{" "}
                             {c.map_or("",|c|c.short(settings.game_language))}{" - "}
                             {m.name(settings.game_language)}
-                            {l.name(settings.game_language)}
                             {if *p {"*"}else{""}}
                         </td>
                     </tr>
