@@ -170,40 +170,47 @@ fn App() -> Html {
         }
     });
 
-    let list = select.output.borrow().iter().map(|(n, c, l, om, p)| {
-        if let Some(m) = om {
-            let mut fade = "";
-            if let Some(n) = n && *n > settings.players {
-                fade = "opacity: 0.5";
-            }
-            if *c == Some(game::Color::Commander) {
-                html! {
-                    <tr>
-                        <td style={fade}>
-                            {BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}{" "}
-                            {c.map_or("",|c|c.short(settings.game_language))}{" - "}
-                            {m.name(settings.game_language)}
-                            {if *p {"*"}else{""}}
-                        </td>
-                    </tr>
+    let list = select
+        .output
+        .borrow()
+        .iter()
+        .map(|(n, c, l, om, p)| {
+            if let Some(m) = om {
+                let mut fade = "";
+                if let Some(n) = n
+                    && *n > settings.players
+                {
+                    fade = "opacity: 0.5";
+                }
+                if *c == Some(game::Color::Commander) {
+                    html! {
+                        <tr>
+                            <td style={fade}>
+                                {BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}{" "}
+                                {c.map_or("",|c|c.short(settings.game_language))}{" - "}
+                                {m.name(settings.game_language)}
+                                {if *p {"*"}else{""}}
+                            </td>
+                        </tr>
+                    }
+                } else {
+                    html! {
+                        <tr>
+                            <td style={fade}>
+                                {BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}{" "}
+                                if let Some(c) = c {
+                                    {c.short(settings.game_language)}{" - "}
+                                }
+                                {m.name(settings.game_language)}{if *p {"*"}else{""}}{" - "}{l.name(settings.game_language)}
+                            </td>
+                        </tr>
+                    }
                 }
             } else {
-                html! {
-                    <tr>
-                        <td style={fade}>
-                            {BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}{" "}
-                            if let Some(c) = c {
-                                {c.short(settings.game_language)}{" - "}
-                            }
-                            {m.name(settings.game_language)}{if *p {"*"}else{""}}{" - "}{l.name(settings.game_language)}
-                        </td>
-                    </tr>
-                }
+                html! {}
             }
-        } else {
-            html! {}
-        }
-    }).collect::<Vec<_>>();
+        })
+        .collect::<Vec<_>>();
     let randomize = select_dispatch.apply_callback(|_| Randomize);
 
     let click_use_preset = dispatch.apply_callback(|_| true);

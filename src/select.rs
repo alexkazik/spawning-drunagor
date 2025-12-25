@@ -377,38 +377,44 @@ pub(crate) fn Select() -> Html {
             </div>
         }
     } else {
-        let list = store.selected.borrow().iter().enumerate().map(|(i, (n, c, l, om, hi))| {
-            let trash_onclick = dispatch.apply_callback(move |_| Remove(i));
-            if let Some(m) = om {
-                html! {
-                    <tr>
-                        <td>if *hi {{"*"}} else {{BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}}</td>
-                        <td>{c.map_or("",|c|c.short(settings.game_language))}{" - "}{m.name(settings.game_language)}{" - "}{l.name(settings.game_language)}</td>
-                        <td>
-                            <Button
-                                style={yew_bootstrap::util::Color::Danger}
-                                outline={true}
-                                onclick={trash_onclick}
-                            >{BI::TRASH}</Button>
-                        </td>
-                    </tr>
+        let list = store
+            .selected
+            .borrow()
+            .iter()
+            .enumerate()
+            .map(|(i, (n, c, l, om, hi))| {
+                let trash_onclick = dispatch.apply_callback(move |_| Remove(i));
+                if let Some(m) = om {
+                    html! {
+                        <tr>
+                            <td>if *hi {{"*"}} else {{BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}}</td>
+                            <td>{c.map_or("",|c|c.short(settings.game_language))}{" - "}{m.name(settings.game_language)}{" - "}{l.name(settings.game_language)}</td>
+                            <td>
+                                <Button
+                                    style={yew_bootstrap::util::Color::Danger}
+                                    outline={true}
+                                    onclick={trash_onclick}
+                                >{BI::TRASH}</Button>
+                            </td>
+                        </tr>
+                    }
+                } else {
+                    html! {
+                        <tr>
+                            <td><strong>{c.map_or("",|c|c.prefix(settings.game_language))}{n.map_or("*",|x|x.as_str())}</strong></td>
+                            <td>{c.map_or("",|c|c.short(settings.game_language))}{" - "}{l.name(settings.game_language)}</td>
+                            <td>
+                                <Button
+                                    style={yew_bootstrap::util::Color::Danger}
+                                    outline={true}
+                                    onclick={trash_onclick}
+                                >{BI::TRASH}</Button>
+                            </td>
+                        </tr>
+                    }
                 }
-            } else {
-                html! {
-                    <tr>
-                        <td><strong>{c.map_or("",|c|c.prefix(settings.game_language))}{n.map_or("*",|x|x.as_str())}</strong></td>
-                        <td>{c.map_or("",|c|c.short(settings.game_language))}{" - "}{l.name(settings.game_language)}</td>
-                        <td>
-                            <Button
-                                style={yew_bootstrap::util::Color::Danger}
-                                outline={true}
-                                onclick={trash_onclick}
-                            >{BI::TRASH}</Button>
-                        </td>
-                    </tr>
-                }
-            }
-        }).collect::<Vec<_>>();
+            })
+            .collect::<Vec<_>>();
 
         let numbers = Number::iter().map(|num| {
             if num > settings.players {
@@ -437,31 +443,27 @@ pub(crate) fn Select() -> Html {
             }
         });
 
-        let colors = Color::iter()
-            .map(|color| {
-                let id = format!("color:{}", color.into());
-                let onchange = dispatch.apply_callback(move |_| color);
-                html! {
-                    <>
-                        <input
-                            type="radio"
-                            class="btn-check"
-                            name="color"
-                            id={id.clone()}
-                            autocomplete="off"
-                            checked={store.current_color == color}
-                            onchange={onchange}
-                        />
-                        <label class="btn btn-outline-primary" for={id}>{color.name(settings.game_language)}</label>
-                    </>
-                }
-            });
+        let colors = Color::iter().map(|color| {
+            let id = format!("color:{}", color.into());
+            let onchange = dispatch.apply_callback(move |_| color);
+            html! {
+                <>
+                    <input
+                        type="radio"
+                        class="btn-check"
+                        name="color"
+                        id={id.clone()}
+                        autocomplete="off"
+                        checked={store.current_color == color}
+                        onchange={onchange}
+                    />
+                    <label class="btn btn-outline-primary" for={id}>{color.name(settings.game_language)}</label>
+                </>
+            }
+        });
 
-        let levels = [Level::Rookie,
-            Level::Fighter,
-            Level::Veteran,
-            Level::Champion,
-        ].into_iter()
+        let levels = [Level::Rookie, Level::Fighter, Level::Veteran, Level::Champion]
+            .into_iter()
             .map(|level| {
                 let id = format!("level:{}", level.id());
                 let onchange = dispatch.apply_callback(move |_| level);
