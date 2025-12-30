@@ -9,7 +9,7 @@
 
 use crate::game::{Chapter, Content, GameLanguage};
 use crate::msg::MsgLanguage;
-use crate::select::{Number, Randomize, Select, SelectStore};
+use crate::select::{Item, Number, Randomize, Select, SelectStore};
 use getrandom as _; // is only used indirectly through rand but is required to activate feature
 use std::collections::HashSet;
 use std::rc::Rc;
@@ -174,42 +174,7 @@ fn App() -> Html {
         .output
         .borrow()
         .iter()
-        .map(|item| {
-            if let Some(m) = item.monster {
-                let mut fade = "";
-                if let Some(n) = item.number
-                    && n > settings.players
-                {
-                    fade = "opacity: 0.5";
-                }
-                if item.color == Some(game::Color::Commander) {
-                    html! {
-                        <tr>
-                            <td style={fade}>
-                                {BI::PERSON_WALKING}{item.number.map_or("*",|x|x.as_str())}{" "}
-                                {item.color.map_or("",|c|c.short(settings.game_language))}{" - "}
-                                {m.name(settings.game_language)}
-                                {if item.preset {"*"}else{""}}
-                            </td>
-                        </tr>
-                    }
-                } else {
-                    html! {
-                        <tr>
-                            <td style={fade}>
-                                {BI::PERSON_WALKING}{item.number.map_or("*",|x|x.as_str())}{" "}
-                                if let Some(c) = item.color {
-                                    {c.short(settings.game_language)}{" - "}
-                                }
-                                {m.name(settings.game_language)}{if item.preset {"*"}else{""}}{" - "}{item.level.name(settings.game_language)}
-                            </td>
-                        </tr>
-                    }
-                }
-            } else {
-                html! {}
-            }
-        })
+        .map(|item| render_list(&settings, item))
         .collect::<Vec<_>>();
     let randomize = select_dispatch.apply_callback(|_| Randomize);
 
@@ -403,6 +368,43 @@ fn App() -> Html {
               </nav>
             </div>
       }
+}
+
+fn render_list(settings: &Rc<Settings>, item: &Item) -> Html {
+    if let Some(m) = item.monster {
+        let mut fade = "";
+        if let Some(n) = item.number
+            && n > settings.players
+        {
+            fade = "opacity: 0.5";
+        }
+        if item.color == Some(game::Color::Commander) {
+            html! {
+                <tr>
+                    <td style={fade}>
+                        {BI::PERSON_WALKING}{item.number.map_or("*",|x|x.as_str())}{" "}
+                        {item.color.map_or("",|c|c.short(settings.game_language))}{" - "}
+                        {m.name(settings.game_language)}
+                        {if item.preset {"*"}else{""}}
+                    </td>
+                </tr>
+            }
+        } else {
+            html! {
+                <tr>
+                    <td style={fade}>
+                        {BI::PERSON_WALKING}{item.number.map_or("*",|x|x.as_str())}{" "}
+                        if let Some(c) = item.color {
+                            {c.short(settings.game_language)}{" - "}
+                        }
+                        {m.name(settings.game_language)}{if item.preset {"*"}else{""}}{" - "}{item.level.name(settings.game_language)}
+                    </td>
+                </tr>
+            }
+        }
+    } else {
+        html! {}
+    }
 }
 
 fn main() {
