@@ -7,11 +7,12 @@
 #![allow(clippy::too_many_lines)]
 #![allow(clippy::unsafe_derive_deserialize)]
 
-use crate::game::{Chapter, Content, GameLanguage};
+use crate::game::{Chapter, Content, GameLanguage, Level};
 use crate::msg::MsgLanguage;
 use crate::select::{Item, Number, Randomize, Select, SelectStore};
 use getrandom as _; // is only used indirectly through rand but is required to activate feature
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
+use std::ops::Deref;
 use std::rc::Rc;
 use yew::{Html, function_component, html};
 use yew_bootstrap::component::form::{FormControl, FormControlType};
@@ -35,6 +36,7 @@ pub(crate) struct Settings {
     pub(crate) players: Number,
     pub(crate) preset_content: Content,
     pub(crate) preset_chapter: Chapter,
+    pub(crate) new_list_mode: bool,
 }
 
 impl Default for Settings {
@@ -47,6 +49,7 @@ impl Default for Settings {
             players: Number::Fife,
             preset_content: Content::Core,
             preset_chapter: Chapter(1),
+            new_list_mode: true,
         }
     }
 }
@@ -96,6 +99,15 @@ impl Reducer<Settings> for Players {
     fn apply(self, mut rc_settings: Rc<Settings>) -> Rc<Settings> {
         let settings = Rc::make_mut(&mut rc_settings);
         settings.players = self.0;
+        rc_settings
+    }
+}
+
+pub(crate) struct ToggleListType;
+impl Reducer<Settings> for ToggleListType {
+    fn apply(self, mut rc_settings: Rc<Settings>) -> Rc<Settings> {
+        let settings = Rc::make_mut(&mut rc_settings);
+        settings.new_list_mode = !settings.new_list_mode;
         rc_settings
     }
 }
@@ -170,13 +182,18 @@ fn App() -> Html {
         }
     });
 
-    let list = select
-        .output
-        .borrow()
-        .iter()
-        .map(|item| render_list(&settings, item))
-        .collect::<Vec<_>>();
+    let list = if settings.new_list_mode {
+        render_list_new(&settings, select.output.borrow())
+    } else {
+        select
+            .output
+            .borrow()
+            .iter()
+            .map(|item| render_list_old(&settings, item))
+            .collect::<Vec<_>>()
+    };
     let randomize = select_dispatch.apply_callback(|_| Randomize);
+    let toggle_list_type = dispatch.apply_callback(|_| ToggleListType);
 
     let click_use_preset = dispatch.apply_callback(|_| true);
     let click_dont_use_preset = dispatch.apply_callback(|_| false);
@@ -313,6 +330,20 @@ fn App() -> Html {
                             }
                             <div>
                             <Button style={Color::Primary} outline={true} onclick={randomize}>{BI::ARROW_COUNTERCLOCKWISE}</Button>
+                            <div class="form-check">
+                              <input
+                                type="checkbox"
+                                class="form-check-input"
+                                value=""
+                                id="toggle-list-type"
+                                checked={settings.new_list_mode}
+                                onchange={toggle_list_type}
+                              />
+                              <label class="form-check-label" for="toggle-list-type">
+                                {"New list type"}
+                              </label>
+                            </div>
+
                             </div>
             if select.output.borrow().iter().any(|item| item.preset) {
                             <div>
@@ -370,7 +401,7 @@ fn App() -> Html {
       }
 }
 
-fn render_list(settings: &Rc<Settings>, item: &Item) -> Html {
+fn render_list_old(settings: &Rc<Settings>, item: &Item) -> Html {
     if let Some(m) = item.monster {
         let mut fade = "";
         if let Some(n) = item.number
@@ -405,6 +436,106 @@ fn render_list(settings: &Rc<Settings>, item: &Item) -> Html {
     } else {
         html! {}
     }
+}
+
+fn render_list_new(settings: &Rc<Settings>, output: impl Deref<Target = Vec<Item>>) -> Vec<Html> {
+    let mut result = Vec::new();
+
+    let mut todo = output
+        .iter()
+        .filter(|item| item.monster.is_some())
+        .filter(|item| item.number.is_none_or(|n| n <= settings.players))
+        .collect::<VecDeque<_>>();
+    while let Some(item) = todo.pop_front() {
+        let mut items = Vec::new();
+        items.push(item);
+
+        if item.number.is_some() {
+            // number and monster are set!
+            let mut pos = 0;
+            while pos < todo.len() {
+                let other = todo[pos];
+                if item.color == other.color
+                    && item.level == other.level
+                    && item.monster == other.monster
+                    && item.preset == other.preset
+                {
+                    items.push(other);
+                    todo.remove(pos);
+                } else {
+                    pos += 1;
+                }
+            }
+
+            let mut is_special = None;
+
+            let icons = items
+                .iter()
+                .map(|item| {
+                    let mut color = item.color;
+                    if let Level::Special(Some(special)) = item.level {
+                        color = special.color();
+                    }
+                    if (!item.preset || matches!(item.level, Level::Special(_)))
+                        && let Some(color) = color
+                    {
+                        html! {
+                            <div class={format!("box_{}_{}", color.prefix_lower(), item.level.id_lower())}>{color.prefix(settings.game_language)}{item.number.unwrap().as_str()}</div>
+                        }
+                    } else {
+                        is_special = item.monster;
+                        html! {
+                            <div class={format!("box_{}", item.level.id_lower())}>{BI::PERSON_WALKING}{item.number.unwrap().as_str()}</div>
+                        }
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            if item
+                .monster
+                .unwrap()
+                .name(settings.game_language)
+                .is_empty()
+            {
+                result.push(html! {
+                    <tr>
+                        <td>
+                            if item.level != Level::Special(None) {
+                                {item.level.name(settings.game_language)}
+                            }
+                            <br/>
+                            {icons}
+                        </td>
+                    </tr>
+                });
+            } else {
+                let extra = if let Some(monster) = is_special
+                    && monster.color != game::Color::Commander
+                {
+                    format!(", {}", monster.color.short(settings.game_language))
+                } else {
+                    String::new()
+                };
+                result.push(html! {
+                    <tr>
+                        <td>
+                            {item.monster.unwrap().name(settings.game_language)}{if item.preset {"*"}else{""}}
+                            {" ("}{item.monster.unwrap().content.name(settings.game_language)}{extra}{")"}
+                            if item.level != Level::Special(None) {
+                                {" - "}{item.level.name(settings.game_language)}
+                            }
+                            <br/>
+                            {icons}
+                        </td>
+                    </tr>
+                });
+            }
+        } else {
+            result.push(render_list_old(settings, item));
+        }
+    }
+
+    result
 }
 
 fn main() {

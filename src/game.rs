@@ -168,6 +168,15 @@ impl Color {
             },
         }
     }
+
+    pub(crate) fn prefix_lower(self) -> &'static str {
+        match self {
+            Color::White => "w",
+            Color::Gray => "g",
+            Color::Black => "b",
+            Color::Commander => "c",
+        }
+    }
 }
 
 #[cfg_attr(feature = "debug", derive(Debug, Serialize))]
@@ -267,6 +276,13 @@ impl Special {
             Special::UnstableDevourer => Some("Rotten Flesh"),
         }
     }
+
+    pub(crate) fn color(self) -> Option<Color> {
+        match self {
+            Special::ScenarioCommander => Some(Color::Commander),
+            _ => None,
+        }
+    }
 }
 
 #[cfg_attr(feature = "debug", derive(Debug, Serialize))]
@@ -287,6 +303,16 @@ impl Level {
             Level::Veteran => "Ve",
             Level::Champion => "Ch",
             Level::Special(_) => "Sp",
+        }
+    }
+
+    pub(crate) fn id_lower(self) -> &'static str {
+        match self {
+            Level::Rookie => "ro",
+            Level::Fighter => "fi",
+            Level::Veteran => "ve",
+            Level::Champion => "ch",
+            Level::Special(_) => "sp",
         }
     }
 

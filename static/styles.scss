@@ -7,3 +7,111 @@
     flex: 1 0 auto;
   }
 }
+
+$ro: rgb(78, 150, 131);
+$fi: rgb(161, 156, 110);
+$ve: rgb(201, 149, 65);
+$ch: rgb(160, 58, 54);
+$sp: rgb(103, 63, 122);
+
+@mixin box_base($col1, $col2) {
+  font-family: sans-serif;
+  font-size: 18px;
+  color: #fff;
+  background: $col1;
+  text-shadow: 2px 0 $col2, -2px 0 $col2, 0 2px $col2, 0 -2px $col2, 1px 1px $col2, -1px -1px $col2, 1px -1px $col2, -1px 1px $col2;
+  width: 36px;
+  height: 36px;
+  text-align: center;
+  padding: 3px;
+  display: inline-block;
+  margin-right: 5px;
+
+  .bi {
+    font-size: 65%;
+  }
+}
+
+@mixin box($col1, $col2) {
+  @include box_base($col1, $col2);
+  border: 2px solid $col2;
+}
+
+@mixin box_special($col2) {
+  @include box_base(rgba(0, 0, 0, 0), $col2);
+  border: 1px solid $col2;
+}
+
+.box_w_ro {
+  @include box(#fff, $ro);
+}
+
+.box_w_fi {
+  @include box(#fff, $fi);
+}
+
+.box_w_ve {
+  @include box(#fff, $ve);
+}
+
+.box_w_ch {
+  @include box(#fff, $ch);
+}
+
+
+.box_g_ro {
+  @include box(#969696, $ro);
+}
+
+.box_g_fi {
+  @include box(#969696, $fi);
+}
+
+.box_g_ve {
+  @include box(#969696, $ve);
+}
+
+.box_g_ch {
+  @include box(#969696, $ch);
+}
+
+
+.box_b_ro {
+  @include box(#000, $ro);
+}
+
+.box_b_fi {
+  @include box(#000, $fi);
+}
+
+.box_b_ve {
+  @include box(#000, $ve);
+}
+
+.box_b_ch {
+  @include box(#000, $ch);
+}
+
+.box_c_sp {
+  @include box(#C09E75, #876F3F);
+}
+
+.box_ro {
+  @include box_special($ro);
+}
+
+.box_fi {
+  @include box_special($fi);
+}
+
+.box_ve {
+  @include box_special($ve);
+}
+
+.box_ch {
+  @include box_special($ch);
+}
+
+.box_sp {
+  @include box_special($sp);
+}
