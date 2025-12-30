@@ -174,22 +174,22 @@ fn App() -> Html {
         .output
         .borrow()
         .iter()
-        .map(|(n, c, l, om, p)| {
-            if let Some(m) = om {
+        .map(|item| {
+            if let Some(m) = item.monster {
                 let mut fade = "";
-                if let Some(n) = n
-                    && *n > settings.players
+                if let Some(n) = item.number
+                    && n > settings.players
                 {
                     fade = "opacity: 0.5";
                 }
-                if *c == Some(game::Color::Commander) {
+                if item.color == Some(game::Color::Commander) {
                     html! {
                         <tr>
                             <td style={fade}>
-                                {BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}{" "}
-                                {c.map_or("",|c|c.short(settings.game_language))}{" - "}
+                                {BI::PERSON_WALKING}{item.number.map_or("*",|x|x.as_str())}{" "}
+                                {item.color.map_or("",|c|c.short(settings.game_language))}{" - "}
                                 {m.name(settings.game_language)}
-                                {if *p {"*"}else{""}}
+                                {if item.preset {"*"}else{""}}
                             </td>
                         </tr>
                     }
@@ -197,11 +197,11 @@ fn App() -> Html {
                     html! {
                         <tr>
                             <td style={fade}>
-                                {BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}{" "}
-                                if let Some(c) = c {
+                                {BI::PERSON_WALKING}{item.number.map_or("*",|x|x.as_str())}{" "}
+                                if let Some(c) = item.color {
                                     {c.short(settings.game_language)}{" - "}
                                 }
-                                {m.name(settings.game_language)}{if *p {"*"}else{""}}{" - "}{l.name(settings.game_language)}
+                                {m.name(settings.game_language)}{if item.preset {"*"}else{""}}{" - "}{item.level.name(settings.game_language)}
                             </td>
                         </tr>
                     }
@@ -349,7 +349,7 @@ fn App() -> Html {
                             <div>
                             <Button style={Color::Primary} outline={true} onclick={randomize}>{BI::ARROW_COUNTERCLOCKWISE}</Button>
                             </div>
-            if select.output.borrow().iter().any(|(_,_, _, _,p)| *p) {
+            if select.output.borrow().iter().any(|item| item.preset) {
                             <div>
                 {"* = Preset monsters"}
                             </div>

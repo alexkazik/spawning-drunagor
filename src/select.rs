@@ -9,6 +9,8 @@ use crate::setup::SetupStore;
 use enum_tools::EnumTools;
 use rand::rng;
 use rand::seq::SliceRandom;
+#[cfg(feature = "debug")]
+use serde::Serialize;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -38,33 +40,25 @@ pub(crate) enum Number {
     Fife = 5,
 }
 
+#[cfg_attr(feature = "debug", derive(Debug, Serialize))]
+#[derive(Clone, PartialEq)]
+pub(crate) struct Item {
+    pub(crate) number: Option<Number>,
+    pub(crate) color: Option<Color>,
+    pub(crate) level: Level,
+    pub(crate) monster: Option<&'static Monster>,
+    pub(crate) preset: bool,
+}
+
 #[derive(Clone, PartialEq, Store)]
 pub(crate) struct SelectStore {
     // custom
-    #[allow(clippy::type_complexity)]
-    selected: Mrc<
-        Vec<(
-            Option<Number>,
-            Option<Color>,
-            Level,
-            Option<&'static Monster>,
-            bool,
-        )>,
-    >,
+    selected: Mrc<Vec<Item>>,
     current_number: Option<Number>,
     current_color: Color,
     current_level: Level,
     current_monster: Mrc<Option<&'static Monster>>,
-    #[allow(clippy::type_complexity)]
-    pub(crate) output: Mrc<
-        Vec<(
-            Option<Number>,
-            Option<Color>,
-            Level,
-            Option<&'static Monster>,
-            bool,
-        )>,
-    >,
+    pub(crate) output: Mrc<Vec<Item>>,
     pub(crate) setup: Option<(Content, Chapter, &'static str)>,
 }
 
@@ -86,17 +80,14 @@ impl Default for SelectStore {
 impl SelectStore {
     pub(crate) fn adjust_content(&mut self, settings: &Settings) {
         let mut changed = false;
-        self.selected
-            .borrow_mut()
-            .iter_mut()
-            .for_each(|(_, _, _, m, _)| {
-                if let Some(sm) = m
-                    && !settings.content.contains(&sm.content)
-                {
-                    *m = None;
-                    changed = true;
-                }
-            });
+        self.selected.borrow_mut().iter_mut().for_each(|item| {
+            if let Some(sm) = item.monster
+                && !settings.content.contains(&sm.content)
+            {
+                item.monster = None;
+                changed = true;
+            }
+        });
         if changed {
             self.output(Some(settings), false);
         }
@@ -118,11 +109,11 @@ impl SelectStore {
             .collect::<Vec<_>>();
 
         let mut todo = HashMap::<Color, HashSet<Level>>::new();
-        for (_n, c, l, m, _) in self.selected.borrow().iter() {
-            if m.is_none()
-                && let Some(c) = c
+        for item in self.selected.borrow().iter() {
+            if item.monster.is_none()
+                && let Some(c) = item.color
             {
-                todo.entry(*c).or_default().insert(*l);
+                todo.entry(c).or_default().insert(item.level);
             }
         }
 
@@ -131,7 +122,13 @@ impl SelectStore {
             avail_monsters
                 .iter()
                 .copied()
-                .filter(|m| !self.selected.borrow().iter().any(|s| s.3 == Some(m)))
+                .filter(|m| {
+                    !self
+                        .selected
+                        .borrow()
+                        .iter()
+                        .any(|item| item.monster == Some(m))
+                })
                 .collect(),
             &todo,
         )
@@ -139,12 +136,24 @@ impl SelectStore {
         let Some(selected) = selected else {
             return;
         };
-        for (n, c, l, m, hi) in self.selected.borrow().iter() {
-            if !*hi {
-                if m.is_none() && c.is_some() {
-                    o.push((*n, *c, *l, selected.get(&(c.unwrap(), *l)).copied(), false));
+        for item in self.selected.borrow().iter() {
+            if !item.preset {
+                if item.monster.is_none() && item.color.is_some() {
+                    o.push(Item {
+                        number: item.number,
+                        color: item.color,
+                        level: item.level,
+                        monster: selected.get(&(item.color.unwrap(), item.level)).copied(),
+                        preset: false,
+                    });
                 } else {
-                    o.push((*n, *c, *l, *m, true));
+                    o.push(Item {
+                        number: item.number,
+                        color: item.color,
+                        level: item.level,
+                        monster: item.monster,
+                        preset: true,
+                    });
                 }
             }
         }
@@ -200,13 +209,13 @@ impl Reducer<SelectStore> for Level {
 impl Reducer<SelectStore> for Option<&'static Monster> {
     fn apply(self, mut rc_state: Rc<SelectStore>) -> Rc<SelectStore> {
         let state = Rc::make_mut(&mut rc_state);
-        state.selected.borrow_mut().push((
-            state.current_number,
-            Some(state.current_color),
-            state.current_level,
-            self,
-            false,
-        ));
+        state.selected.borrow_mut().push(Item {
+            number: state.current_number,
+            color: Some(state.current_color),
+            level: state.current_level,
+            monster: self,
+            preset: false,
+        });
         state.output(None, false);
         rc_state
     }
@@ -266,8 +275,8 @@ impl Reducer<SelectStore> for Preset {
                     {
                         let mut selected = state.selected.borrow_mut();
                         selected.clear();
-                        for (n, c, l, m, hi) in &setup.monsters {
-                            selected.push((Some(*n), *c, *l, *m, *hi));
+                        for item in &setup.monsters {
+                            selected.push(item.clone());
                         }
                     }
                     state.output(None, false);
@@ -382,13 +391,13 @@ pub(crate) fn Select() -> Html {
             .borrow()
             .iter()
             .enumerate()
-            .map(|(i, (n, c, l, om, hi))| {
+            .map(|(i, item)| {
                 let trash_onclick = dispatch.apply_callback(move |_| Remove(i));
-                if let Some(m) = om {
+                if let Some(m) = item.monster {
                     html! {
                         <tr>
-                            <td>if *hi {{"*"}} else {{BI::PERSON_WALKING}{n.map_or("*",|x|x.as_str())}}</td>
-                            <td>{c.map_or("",|c|c.short(settings.game_language))}{" - "}{m.name(settings.game_language)}{" - "}{l.name(settings.game_language)}</td>
+                            <td>if item.preset {{"*"}} else {{BI::PERSON_WALKING}{item.number.map_or("*",|x|x.as_str())}}</td>
+                            <td>{item.color.map_or("",|c|c.short(settings.game_language))}{" - "}{m.name(settings.game_language)}{" - "}{item.level.name(settings.game_language)}</td>
                             <td>
                                 <Button
                                     style={yew_bootstrap::util::Color::Danger}
@@ -401,8 +410,8 @@ pub(crate) fn Select() -> Html {
                 } else {
                     html! {
                         <tr>
-                            <td><strong>{c.map_or("",|c|c.prefix(settings.game_language))}{n.map_or("*",|x|x.as_str())}</strong></td>
-                            <td>{c.map_or("",|c|c.short(settings.game_language))}{" - "}{l.name(settings.game_language)}</td>
+                            <td><strong>{item.color.map_or("",|c|c.prefix(settings.game_language))}{item.number.map_or("*",|x|x.as_str())}</strong></td>
+                            <td>{item.color.map_or("",|c|c.short(settings.game_language))}{" - "}{item.level.name(settings.game_language)}</td>
                             <td>
                                 <Button
                                     style={yew_bootstrap::util::Color::Danger}

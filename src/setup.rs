@@ -1,7 +1,7 @@
 use crate::game::{
-    Chapter, Color, Content, GameLanguage, Level, MONSTER_VERY_SPECIAL, MONSTERS, Monster, Special,
+    Chapter, Color, Content, GameLanguage, Level, MONSTER_VERY_SPECIAL, MONSTERS, Special,
 };
-use crate::select::Number;
+use crate::select::{Item, Number};
 use core::str::FromStr;
 #[cfg(feature = "debug")]
 use serde::Serialize;
@@ -53,8 +53,7 @@ pub(crate) struct Setup {
     pub(crate) chapter: Chapter,
     name_en: &'static str,
     name_de: &'static str,
-    #[allow(clippy::type_complexity)]
-    pub(crate) monsters: Vec<(Number, Option<Color>, Level, Option<&'static Monster>, bool)>,
+    pub(crate) monsters: Vec<Item>,
 }
 
 impl Setup {
@@ -73,7 +72,7 @@ impl Setup {
         let mut monsters = Vec::with_capacity(m.len());
         let mut last_number = Number::One;
         for (f1, f2) in m {
-            let (nu, mut co, mut le, hi) = if f1 == "Exclude" {
+            let (number, mut color, mut level, preset) = if f1 == "Exclude" {
                 (Number::One, None, Level::Special(None), true)
             } else {
                 let f1b = f1.as_bytes();
@@ -138,7 +137,7 @@ impl Setup {
                 last_number = nu;
                 (nu, co, le, false)
             };
-            let mo = if f2.is_empty() {
+            let monster = if f2.is_empty() {
                 None
             } else if let Some(f2) = f2.strip_prefix('*') {
                 let special = Special::iter()
@@ -151,10 +150,10 @@ impl Setup {
                         )
                     });
 
-                le = Level::Special(Some(special));
+                level = Level::Special(Some(special));
 
                 if special == Special::CommanderBrute {
-                    co = Some(Color::Commander);
+                    color = Some(Color::Commander);
                 }
 
                 if let Some(mo) = special.monster() {
@@ -180,7 +179,7 @@ impl Setup {
                     });
 
                 #[cfg(feature = "debug")]
-                if let Some(co) = co {
+                if let Some(co) = color {
                     assert_eq!(
                         co,
                         mo.color,
@@ -192,7 +191,13 @@ impl Setup {
 
                 Some(mo)
             };
-            monsters.push((nu, co, le, mo, hi));
+            monsters.push(Item {
+                number: Some(number),
+                color,
+                level,
+                monster,
+                preset,
+            });
         }
         Self {
             content: Content::iter()
