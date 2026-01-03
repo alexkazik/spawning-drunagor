@@ -41,7 +41,7 @@ Core,11,Setup,Aufbau,S1,*Murderous Apparition,S1,*Undead King,S2,*Drifter Appari
 Core,11,Door 1,Tür 1,S1,*Drifter Apparition,S2,*Murderous Apparition,S3,*Drifter Apparition,S4,*Murderous Apparition,S5,*Drifter Apparition,,,,,,,,,,,,
 Core,11,Door 2,Tür 2,S1,*Manifestation of Wrath,S2,*Murderous Apparition,S3,*Manifestation of Wrath,S4,*Drifter Apparition,S5,*Manifestation of Wrath,,,,,,,,,,,,
 Core,11,Door 3,Tür 3,S2,*Murderous Apparition,S3,*Murderous Apparition,S4,*Murderous Apparition,S5,*Murderous Apparition,,,,,,,,,,,,,,
-Core,12,Setup,Aufbau,S1,*Murderous Apparition,S1,*Drifter Apparition,S2,*Manifestation of Wrath,S3,*Manifestation of Wrath,S1,*Drifter Apparition,S1,*Murderous Apparition,,,,,,,,,,
+Core,12,Setup,Aufbau,S1,*Murderous Apparition,S1,*Drifter Apparition,S2,*Manifestation of Wrath,S3,*Manifestation of Wrath,S4,*Drifter Apparition,S5,*Murderous Apparition,,,,,,,,,,
 Core,12,Door Fight for survival,Tür Kampf ums Überleben,S1,*Murderous Apparition,S2,*Drifter Apparition,S3,*Murderous Apparition,S4,*Drifter Apparition,S5,*Murderous Apparition,,,,,,,,,,,,
 Core,12,Door Morlokin's workshop,Tür Morlokins Werkstatt,S1,*Drifter Apparition,S2,*Murderous Apparition,S3,*Drifter Apparition,S4,*Drifter Apparition,S5,*Murderous Apparition,,,,,,,,,,,,
 Core,12,Door The lost seer,Tür Der verirrte Seher,S1,*Manifestation of Wrath,S2,*Drifter Apparition,S3,*Manifestation of Wrath,S4,*Drifter Apparition,S5,*Manifestation of Wrath,,,,,,,,,,,,

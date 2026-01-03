@@ -20,7 +20,24 @@ impl Default for SetupStore {
             .map(|l| l.split(',').collect::<Vec<_>>())
             .filter(|l| l.len() >= 4)
             .map(|l| Setup::read(&l))
-            .collect();
+            .collect::<Vec<_>>();
+
+        setups.iter().fold(None, |a: Option<&Setup>, i| {
+            if let Some(a) = a
+                && (i.content, i.chapter) < (a.content, a.chapter)
+            {
+                panic!(
+                    "wrong order: {}.{}.{} is before {}.{}.{}",
+                    a.content.name(GameLanguage::En),
+                    a.chapter.0,
+                    a.name_en,
+                    i.content.name(GameLanguage::En),
+                    i.chapter.0,
+                    i.name_en
+                );
+            }
+            Some(i)
+        });
 
         #[cfg(feature = "debug")]
         web_sys::console::log_1(&serde_wasm_bindgen::to_value(&setups).unwrap());
@@ -54,6 +71,7 @@ impl Setup {
             m.pop();
         }
         let mut monsters = Vec::with_capacity(m.len());
+        let mut last_number = Number::One;
         for (f1, f2) in m {
             let (nu, mut co, mut le, hi) = if f1 == "Exclude" {
                 (Number::One, None, Level::Special(None), true)
@@ -111,6 +129,13 @@ impl Setup {
                         _ => panic!("unknown regular level \"{f1}\" on \"{}\"", fields.join(",")),
                     },
                 };
+                assert!(
+                    nu >= last_number,
+                    "number decreased \"{}\" on \"{}\"",
+                    f2,
+                    fields.join(",")
+                );
+                last_number = nu;
                 (nu, co, le, false)
             };
             let mo = if f2.is_empty() {
