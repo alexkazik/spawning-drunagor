@@ -1,4 +1,3 @@
-use core::hash::{Hash, Hasher};
 use enum_tools::EnumTools;
 use serde::{Deserialize, Serialize};
 
@@ -19,12 +18,6 @@ impl PartialEq for Monster {
 }
 
 impl Eq for Monster {}
-
-impl Hash for Monster {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        state.write_usize(self.name_en.as_ptr() as usize);
-    }
-}
 
 impl Monster {
     pub(crate) fn name(&self, game_language: GameLanguage) -> &'static str {
