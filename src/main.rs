@@ -1,5 +1,6 @@
 #![forbid(unsafe_code)]
 #![deny(unused_crate_dependencies)]
+#![warn(clippy::std_instead_of_core)]
 #![warn(clippy::pedantic)]
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::module_name_repetitions)]
@@ -10,9 +11,9 @@
 use crate::game::{Chapter, Content, GameLanguage, Level};
 use crate::msg::MsgLanguage;
 use crate::select::{Item, Number, Randomize, Select, SelectStore};
+use core::ops::Deref;
 use getrandom as _; // is only used indirectly through rand but is required to activate feature
 use std::collections::{HashSet, VecDeque};
-use std::ops::Deref;
 use std::rc::Rc;
 use yew::{Html, function_component, html};
 use yew_bootstrap::component::form::{FormControl, FormControlType};

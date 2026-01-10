@@ -1,6 +1,6 @@
+use core::hash::{Hash, Hasher};
 use enum_tools::EnumTools;
 use serde::{Deserialize, Serialize};
-use std::hash::{Hash, Hasher};
 
 #[cfg_attr(feature = "debug", derive(Debug, Serialize))]
 pub(crate) struct Monster {
