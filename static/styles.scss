@@ -92,9 +92,11 @@ $sp: rgb(103, 63, 122);
   @include box(#000, $ch);
 }
 
-.box_c_sp {
+
+.box_c_ro, .box_c_fi, .box_c_ve, .box_c_ch {
   @include box(#C09E75, #876F3F);
 }
+
 
 .box_ro {
   @include box_special($ro);

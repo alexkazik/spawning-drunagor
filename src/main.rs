@@ -8,7 +8,7 @@
 #![allow(clippy::too_many_lines)]
 #![allow(clippy::unsafe_derive_deserialize)]
 
-use crate::game::{Chapter, Content, GameLanguage, Level, Number};
+use crate::game::{Chapter, Content, GameLanguage, Number};
 use crate::msg::MsgLanguage;
 use crate::select::{Item, Randomize, Select, SelectStore};
 use core::ops::Deref;
@@ -81,7 +81,7 @@ impl Reducer<Settings> for Content {
         }
         Dispatch::<SelectStore>::global().reduce_mut(|s| s.adjust_content(settings));
         if settings.preset && !settings.content.contains(&Content::Core) {
-            settings.preset = true;
+            settings.preset = false;
         }
         rc_settings
     }
@@ -91,6 +91,9 @@ impl Reducer<Settings> for bool {
     fn apply(self, mut rc_settings: Rc<Settings>) -> Rc<Settings> {
         let settings = Rc::make_mut(&mut rc_settings);
         settings.preset = self;
+        if !settings.preset {
+            Dispatch::<SelectStore>::global().reduce_mut(SelectStore::remove_excluded);
+        }
         rc_settings
     }
 }
@@ -405,17 +408,15 @@ fn App() -> Html {
 fn render_list_old(settings: &Rc<Settings>, item: &Item) -> Html {
     if let Some(m) = item.monster {
         let mut fade = "";
-        if let Some(n) = item.number
-            && n > settings.players
-        {
+        if item.number > settings.players {
             fade = "opacity: 0.5";
         }
-        if item.color == Some(game::Color::Commander) {
+        if item.color.is_any_commander() {
             html! {
                 <tr>
                     <td style={fade}>
-                        {BI::PERSON_WALKING}{item.number.map_or("*",|x|x.as_str())}{" "}
-                        {item.color.map_or("",|c|c.short(settings.game_language))}{" - "}
+                        {BI::PERSON_WALKING}{item.number.as_str()}{" "}
+                        {item.color.short(settings.game_language)}{" - "}
                         {m.name(settings.game_language)}
                         {if item.preset {"*"}else{""}}
                     </td>
@@ -425,11 +426,17 @@ fn render_list_old(settings: &Rc<Settings>, item: &Item) -> Html {
             html! {
                 <tr>
                     <td style={fade}>
-                        {BI::PERSON_WALKING}{item.number.map_or("*",|x|x.as_str())}{" "}
-                        if let Some(c) = item.color {
-                            {c.short(settings.game_language)}{" - "}
+                        {BI::PERSON_WALKING}{item.number.as_str()}{" "}
+                        if !item.color.is_any_special() {
+                            {item.color.short(settings.game_language)}{" - "}
                         }
-                        {m.name(settings.game_language)}{if item.preset {"*"}else{""}}{" - "}{item.level.name(settings.game_language)}
+                        {m.name(settings.game_language)}{if item.preset {"*"}else{""}}
+                        if !item.color.is_any_commander() && !item.color.is_any_special() {
+                            {" - "}{item.level.name(settings.game_language)}
+                        }
+                        if let Some(monster) = m.miniature() {
+                            {" - "}{monster.name(settings.game_language)}
+                        }
                     </td>
                 </tr>
             }
@@ -445,100 +452,85 @@ fn render_list_new(settings: &Rc<Settings>, output: impl Deref<Target = Vec<Item
     let mut todo = output
         .iter()
         .filter(|item| item.monster.is_some())
-        .filter(|item| item.number.is_none_or(|n| n <= settings.players))
+        .filter(|item| item.number <= settings.players)
         .collect::<VecDeque<_>>();
     while let Some(item) = todo.pop_front() {
         let mut items = Vec::new();
         items.push(item);
 
-        if item.number.is_some() {
-            // number and monster are set!
-            let mut pos = 0;
-            while pos < todo.len() {
-                let other = todo[pos];
-                if item.color == other.color
-                    && item.level == other.level
-                    && item.monster == other.monster
-                    && item.preset == other.preset
-                {
-                    items.push(other);
-                    todo.remove(pos);
-                } else {
-                    pos += 1;
-                }
-            }
-
-            let mut is_special = None;
-
-            let icons = items
-                .iter()
-                .map(|item| {
-                    let mut color = item.color;
-                    if let Level::Special(Some(special)) = item.level {
-                        color = special.color();
-                    }
-                    if (!item.preset || matches!(item.level, Level::Special(_)))
-                        && let Some(color) = color
-                    {
-                        html! {
-                            <div class={format!("box_{}_{}", color.prefix_lower(), item.level.id_lower())}>{color.prefix(settings.game_language)}{item.number.unwrap().as_str()}</div>
-                        }
-                    } else {
-                        is_special = item.monster;
-                        html! {
-                            <div class={format!("box_{}", item.level.id_lower())}>{BI::PERSON_WALKING}{item.number.unwrap().as_str()}</div>
-                        }
-                    }
-                })
-                .collect::<Vec<_>>();
-
-            if item
-                .monster
-                .unwrap()
-                .name(settings.game_language)
-                .is_empty()
+        // number and monster are set!
+        let mut pos = 0;
+        while pos < todo.len() {
+            let other = todo[pos];
+            if item.color == other.color
+                && item.level == other.level
+                && item.monster == other.monster
+                && item.preset == other.preset
             {
-                result.push(html! {
-                    <tr>
-                        <td>
-                            if item.level != Level::Special(None) {
-                                {item.level.name(settings.game_language)}
-                            }
-                            <br/>
-                            {icons}
-                        </td>
-                    </tr>
-                });
+                items.push(other);
+                todo.remove(pos);
             } else {
-                let extra = if let Some(monster) = is_special
-                    && monster.color != game::Color::Commander
-                {
-                    format!(", {}", monster.color.short(settings.game_language))
-                } else {
-                    String::new()
-                };
-                result.push(html! {
-                    <tr>
-                        <td>
-                            {item.monster.unwrap().name(settings.game_language)}{if item.preset {"*"}else{""}}
-                            {" ("}{item.monster.unwrap().content.name(settings.game_language)}{extra}{")"}
-                            if item.level != Level::Special(None) {
-                                {" - "}{item.level.name(settings.game_language)}
-                            }
-                            <br/>
-                            {icons}
-                        </td>
-                    </tr>
-                });
+                pos += 1;
             }
-        } else {
-            result.push(render_list_old(settings, item));
         }
+
+        let icons = items
+            .iter()
+            .map(|item| {
+                if item.preset {
+                    let style = if item.color.is_any_commander() {
+                        "c_ro"
+                    } else if item.color.is_any_special() {
+                        "sp"
+                    } else {
+                        item.level.id_lower()
+                    };
+                    html! {
+                        <div class={format!("box_{}",style)}>{BI::PERSON_WALKING}{item.number.as_str()}</div>
+                    }
+                } else {
+                    html! {
+                        <div class={format!("box_{}_{}", item.color.prefix_lower(), item.level.id_lower())}>{item.color.prefix(settings.game_language)}{item.number.as_str()}</div>
+                    }
+                }
+            })
+            .collect::<Vec<_>>();
+
+        let miniature = item
+            .monster
+            .unwrap()
+            .miniature()
+            .unwrap_or(item.monster.unwrap());
+
+        let size = if let Some(size) = miniature.color().size(settings.game_language) {
+            format!(", {size}")
+        } else {
+            String::new()
+        };
+        result.push(html! {
+            <tr>
+                <td>
+                    {item.monster.unwrap().name(settings.game_language)}{if item.preset {"*"}else{""}}
+                    if !item.color.is_any_commander() && !item.color.is_any_special() {
+                        {" - "}{item.level.name(settings.game_language)}
+                    }
+                    if let Some(monster) = item.monster.unwrap().miniature() {
+                        {" - "}{monster.name(settings.game_language)}
+                    }
+                    {" ("}{item.monster.unwrap().content().name(settings.game_language)}{size}{")"}
+                    <br/>
+                    {icons}
+                </td>
+            </tr>
+        });
     }
 
     result
 }
 
 fn main() {
+    #[cfg(feature = "debug")]
+    web_sys::console::log_1(&serde_wasm_bindgen::to_value("staring with debug").unwrap());
+
     yew::Renderer::<App>::new().render();
 }

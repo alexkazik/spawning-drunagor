@@ -4,8 +4,8 @@
 #![allow(clippy::too_many_lines)]
 
 use crate::Settings;
-use crate::game::{Chapter, Color, Content, GameLanguage, Level, MONSTERS, Monster, Number};
-use crate::setup::SetupStore;
+use crate::game::{Chapter, Color, Content, GameLanguage, Level, Monster, Number, SETUPS};
+use crate::setup::SetupItem;
 use rand::rng;
 use rand::seq::SliceRandom;
 #[cfg(feature = "debug")]
@@ -21,21 +21,21 @@ use yewdux::{Dispatch, Reducer, Store, use_store};
 #[cfg_attr(feature = "debug", derive(Debug, Serialize))]
 #[derive(Clone, PartialEq)]
 pub(crate) struct Item {
-    pub(crate) number: Option<Number>,
-    pub(crate) color: Option<Color>,
+    pub(crate) number: Number,
+    pub(crate) color: Color,
     pub(crate) level: Level,
-    pub(crate) monster: Option<&'static Monster>,
+    pub(crate) monster: Option<Monster>,
     pub(crate) preset: bool,
 }
 
 #[derive(Clone, PartialEq, Store)]
 pub(crate) struct SelectStore {
     // custom
-    selected: Mrc<Vec<Item>>,
-    current_number: Option<Number>,
+    selected: Mrc<Vec<SetupItem>>,
+    current_number: Number,
     current_color: Color,
     current_level: Level,
-    current_monster: Mrc<Option<&'static Monster>>,
+    current_monster: Mrc<Option<Monster>>,
     pub(crate) output: Mrc<Vec<Item>>,
     pub(crate) setup: Option<(Content, Chapter, &'static str)>,
 }
@@ -45,7 +45,7 @@ impl Default for SelectStore {
         Self {
             // custom
             selected: Mrc::new(vec![]),
-            current_number: None,
+            current_number: Number::One,
             current_color: Color::White,
             current_level: Level::Rookie,
             current_monster: Mrc::default(),
@@ -60,7 +60,7 @@ impl SelectStore {
         let mut changed = false;
         self.selected.borrow_mut().iter_mut().for_each(|item| {
             if let Some(sm) = item.monster
-                && !settings.content.contains(&sm.content)
+                && !settings.content.contains(&sm.content())
             {
                 item.monster = None;
                 changed = true;
@@ -80,18 +80,15 @@ impl SelectStore {
         let settings = settings.unwrap_or(&*rc_settings);
 
         // gather available monsters (by type)
-        let avail_monsters = MONSTERS
-            .iter()
-            .copied()
-            .filter(|monster| settings.content.contains(&monster.content))
+        let avail_monsters = Monster::iter()
+            .filter(|monster| !monster.color().is_any_special())
+            .filter(|monster| settings.content.contains(&monster.content()))
             .collect::<Vec<_>>();
 
         let mut todo = HashMap::<Color, HashSet<Level>>::new();
         for item in self.selected.borrow().iter() {
-            if item.monster.is_none()
-                && let Some(c) = item.color
-            {
-                todo.entry(c).or_default().insert(item.level);
+            if item.monster.is_none() {
+                todo.entry(item.color).or_default().insert(item.level);
             }
         }
 
@@ -101,11 +98,10 @@ impl SelectStore {
                 .iter()
                 .copied()
                 .filter(|m| {
-                    !self
-                        .selected
-                        .borrow()
-                        .iter()
-                        .any(|item| item.monster == Some(m))
+                    !self.selected.borrow().iter().any(|item| {
+                        item.monster == Some(*m)
+                            || item.monster.and_then(Monster::miniature) == Some(*m)
+                    })
                 })
                 .collect(),
             &todo,
@@ -115,13 +111,13 @@ impl SelectStore {
             return;
         };
         for item in self.selected.borrow().iter() {
-            if !item.preset {
-                if item.monster.is_none() && item.color.is_some() {
+            if !item.exclude {
+                if item.monster.is_none() {
                     o.push(Item {
                         number: item.number,
                         color: item.color,
                         level: item.level,
-                        monster: selected.get(&(item.color.unwrap(), item.level)).copied(),
+                        monster: selected.get(&(item.color, item.level)).copied(),
                         preset: false,
                     });
                 } else {
@@ -138,9 +134,9 @@ impl SelectStore {
     }
 
     fn select(
-        mut avail: Vec<&'static Monster>,
+        mut avail: Vec<Monster>,
         todo: &HashMap<Color, HashSet<Level>>,
-    ) -> Option<HashMap<(Color, Level), &'static Monster>> {
+    ) -> Option<HashMap<(Color, Level), Monster>> {
         avail.shuffle(&mut rng());
 
         let mut r = HashMap::new();
@@ -150,7 +146,7 @@ impl SelectStore {
                     .iter()
                     .copied()
                     .enumerate()
-                    .find(|(_, m)| m.color == *co)?;
+                    .find(|(_, m)| m.color() == *co)?;
                 avail.swap_remove(i);
                 r.insert((*co, *le), m);
             }
@@ -158,9 +154,13 @@ impl SelectStore {
 
         Some(r)
     }
+
+    pub(crate) fn remove_excluded(&mut self) {
+        self.selected.borrow_mut().retain(|item| !item.exclude);
+    }
 }
 
-impl Reducer<SelectStore> for Option<Number> {
+impl Reducer<SelectStore> for Number {
     fn apply(self, mut rc_state: Rc<SelectStore>) -> Rc<SelectStore> {
         let state = Rc::make_mut(&mut rc_state);
         state.current_number = self;
@@ -184,15 +184,15 @@ impl Reducer<SelectStore> for Level {
     }
 }
 
-impl Reducer<SelectStore> for Option<&'static Monster> {
+impl Reducer<SelectStore> for Option<Monster> {
     fn apply(self, mut rc_state: Rc<SelectStore>) -> Rc<SelectStore> {
         let state = Rc::make_mut(&mut rc_state);
-        state.selected.borrow_mut().push(Item {
+        state.selected.borrow_mut().push(SetupItem {
             number: state.current_number,
-            color: Some(state.current_color),
+            color: state.current_color,
             level: state.current_level,
             monster: self,
-            preset: false,
+            exclude: false,
         });
         state.output(None, false);
         rc_state
@@ -240,9 +240,7 @@ impl Reducer<SelectStore> for Preset {
             }
             Preset::Show(index) => {
                 let rc_settings = Dispatch::<Settings>::global().get();
-                let setup = Dispatch::<SetupStore>::global().get();
-                if let Some(setup) = setup
-                    .setups
+                if let Some(setup) = SETUPS
                     .iter()
                     .filter(|s| {
                         s.content == rc_settings.preset_content
@@ -253,7 +251,7 @@ impl Reducer<SelectStore> for Preset {
                     {
                         let mut selected = state.selected.borrow_mut();
                         selected.clear();
-                        for item in &setup.monsters {
+                        for item in setup.monsters {
                             selected.push(item.clone());
                         }
                     }
@@ -275,10 +273,9 @@ impl Reducer<SelectStore> for Preset {
 pub(crate) fn Select() -> Html {
     let (settings, _) = use_store::<Settings>();
     let (store, dispatch) = use_store::<SelectStore>();
-    let (setup, _) = use_store::<SetupStore>();
 
     if settings.preset {
-        let mut contents = setup.setups.iter().map(|s| s.content).collect::<Vec<_>>();
+        let mut contents = SETUPS.iter().map(|s| s.content).collect::<Vec<_>>();
         contents.sort_by_key(|s| s.order_name(settings.game_language));
         contents.dedup();
         let contents = contents.into_iter().map(|c| {
@@ -300,8 +297,7 @@ pub(crate) fn Select() -> Html {
             }
         });
 
-        let mut chapters = setup
-            .setups
+        let mut chapters = SETUPS
             .iter()
             .filter(|s| s.content == settings.preset_content)
             .map(|s| s.chapter)
@@ -327,8 +323,7 @@ pub(crate) fn Select() -> Html {
             }
         });
 
-        let entries = setup
-            .setups
+        let entries = SETUPS
             .iter()
             .filter(|s| {
                 s.content == settings.preset_content && s.chapter == settings.preset_chapter
@@ -374,8 +369,8 @@ pub(crate) fn Select() -> Html {
                 if let Some(m) = item.monster {
                     html! {
                         <tr>
-                            <td>if item.preset {{"*"}} else {{BI::PERSON_WALKING}{item.number.map_or("*",|x|x.as_str())}}</td>
-                            <td>{item.color.map_or("",|c|c.short(settings.game_language))}{" - "}{m.name(settings.game_language)}{" - "}{item.level.name(settings.game_language)}</td>
+                            <td>{BI::PERSON_WALKING}{item.number.as_str()}</td>
+                            <td>{item.color.short(settings.game_language)}{" - "}{m.name(settings.game_language)}{" - "}{item.level.name(settings.game_language)}</td>
                             <td>
                                 <Button
                                     style={yew_bootstrap::util::Color::Danger}
@@ -388,8 +383,8 @@ pub(crate) fn Select() -> Html {
                 } else {
                     html! {
                         <tr>
-                            <td><strong>{item.color.map_or("",|c|c.prefix(settings.game_language))}{item.number.map_or("*",|x|x.as_str())}</strong></td>
-                            <td>{item.color.map_or("",|c|c.short(settings.game_language))}{" - "}{item.level.name(settings.game_language)}</td>
+                            <td><strong>{item.color.prefix(settings.game_language)}{item.number.as_str()}</strong></td>
+                            <td>{item.color.short(settings.game_language)}{" - "}{item.level.name(settings.game_language)}</td>
                             <td>
                                 <Button
                                     style={yew_bootstrap::util::Color::Danger}
@@ -408,11 +403,7 @@ pub(crate) fn Select() -> Html {
                 return html! {};
             }
             let id = format!("number:{}", num.as_str());
-            let onchange = if store.current_number == Some(num) {
-                dispatch.apply_callback(move |_| Option::<Number>::None)
-            } else {
-                dispatch.apply_callback(move |_| Some(num))
-            };
+            let onchange = dispatch.apply_callback(move |_| num);
 
             html! {
                 <>
@@ -422,7 +413,7 @@ pub(crate) fn Select() -> Html {
                         name="number"
                         id={id.clone()}
                         autocomplete="off"
-                        checked={store.current_number == Some(num)}
+                        checked={store.current_number == num}
                         onclick={onchange}
                     />
                     <label class="btn btn-outline-primary" for={id}>{num.as_str()}</label>
@@ -430,7 +421,7 @@ pub(crate) fn Select() -> Html {
             }
         });
 
-        let colors = Color::iter().map(|color| {
+        let colors = Color::iter().filter(|color| !color.is_any_special()).map(|color| {
             let id = format!("color:{}", color.into());
             let onchange = dispatch.apply_callback(move |_| color);
             html! {
@@ -471,11 +462,11 @@ pub(crate) fn Select() -> Html {
                 }
             });
 
-        let mut monsters = MONSTERS
-            .iter()
-            .copied()
+        let mut monsters = Monster::iter()
+            .filter(|monster| !monster.color().is_any_special())
             .filter(|monster| {
-                monster.color == store.current_color && settings.content.contains(&monster.content)
+                monster.color() == store.current_color
+                    && settings.content.contains(&monster.content())
             })
             .map(|monster| (monster, monster.name(settings.game_language)))
             .collect::<Vec<_>>();
@@ -520,7 +511,7 @@ pub(crate) fn Select() -> Html {
                 <div class="btn-group-vertical" style="vertical-align: top" role="group" aria-label="Vertical button group">
                     <Button
                         style={yew_bootstrap::util::Color::Success}
-                        onclick={dispatch.apply_callback(|_|Option::<&'static Monster>::None)}
+                        onclick={dispatch.apply_callback(|_|Option::<Monster>::None)}
                     >
                         {"Random"}
                     </Button>

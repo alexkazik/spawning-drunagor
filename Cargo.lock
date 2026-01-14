@@ -212,6 +212,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "generator"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "enum-tools",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1004,7 +1012,9 @@ checksum = "7a2ae44ef20feb57a68b23d846850f861394c2e02dc425a50098ae8c90267589"
 name = "spawning-drunagor"
 version = "0.4.0"
 dependencies = [
+ "anyhow",
  "enum-tools",
+ "generator",
  "getrandom 0.3.4",
  "rand",
  "serde",

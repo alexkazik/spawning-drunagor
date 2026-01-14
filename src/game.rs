@@ -1,33 +1,7 @@
+pub(crate) use crate::game::generated::{Monster, SETUPS};
 use enum_tools::EnumTools;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-
-#[cfg_attr(feature = "debug", derive(Debug, Serialize))]
-pub(crate) struct Monster {
-    name_en: &'static str,
-    name_de: &'static str,
-    pub(crate) content: Content,
-    pub(crate) color: Color,
-    #[allow(dead_code)]
-    pub(crate) has_complex: bool,
-}
-
-impl PartialEq for Monster {
-    fn eq(&self, other: &Self) -> bool {
-        self.name_en == other.name_en
-    }
-}
-
-impl Eq for Monster {}
-
-impl Monster {
-    pub(crate) fn name(&self, game_language: GameLanguage) -> &'static str {
-        match game_language {
-            GameLanguage::En => self.name_en,
-            GameLanguage::De => self.name_de,
-        }
-    }
-}
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(
@@ -42,7 +16,7 @@ impl Monster {
     serde::Serialize,
     serde::Deserialize,
 )]
-#[enum_tools(iter, into)]
+#[enum_tools(iter, into, as_str)]
 #[repr(u8)]
 pub(crate) enum Content {
     Core,
@@ -109,9 +83,19 @@ pub(crate) enum Color {
     Gray,
     Black,
     Commander,
+    Special,
+    SpecialCommander,
 }
 
 impl Color {
+    pub(crate) fn is_any_commander(self) -> bool {
+        self == Color::Commander || self == Color::SpecialCommander
+    }
+
+    pub(crate) fn is_any_special(self) -> bool {
+        self == Color::Special || self == Color::SpecialCommander
+    }
+
     pub(crate) fn name(self, game_language: GameLanguage) -> &'static str {
         match game_language {
             GameLanguage::En => match self {
@@ -119,12 +103,16 @@ impl Color {
                 Color::Gray => "Gray",
                 Color::Black => "Black",
                 Color::Commander => "Commander",
+                Color::Special => panic!("called Color::Special::name()"),
+                Color::SpecialCommander => panic!("called Color::SpecialCommander::name()"),
             },
             GameLanguage::De => match self {
                 Color::White => "Weiß",
                 Color::Gray => "Grau",
                 Color::Black => "Schwarz",
                 Color::Commander => "Kommandant",
+                Color::Special => panic!("called Color::Special::name()"),
+                Color::SpecialCommander => panic!("called Color::SpecialCommander::name()"),
             },
         }
     }
@@ -136,12 +124,31 @@ impl Color {
                 Color::Gray => "GM",
                 Color::Black => "BM",
                 Color::Commander => "Commander",
+                Color::Special => panic!("called Color::Special::short()"),
+                Color::SpecialCommander => panic!("called Color::SpecialCommander::short()"),
             },
             GameLanguage::De => match self {
                 Color::White => "WM",
                 Color::Gray => "GM",
                 Color::Black => "SM",
                 Color::Commander => "Kommandant",
+                Color::Special => panic!("called Color::Special::short()"),
+                Color::SpecialCommander => panic!("called Color::SpecialCommander::short()"),
+            },
+        }
+    }
+
+    pub(crate) fn size(self, game_language: GameLanguage) -> Option<&'static str> {
+        match game_language {
+            GameLanguage::En => match self {
+                Color::White | Color::Gray => Some("small"),
+                Color::Black => Some("big"),
+                Color::Commander | Color::Special | Color::SpecialCommander => None,
+            },
+            GameLanguage::De => match self {
+                Color::White | Color::Gray => Some("klein"),
+                Color::Black => Some("groß"),
+                Color::Commander | Color::Special | Color::SpecialCommander => None,
             },
         }
     }
@@ -153,12 +160,16 @@ impl Color {
                 Color::Gray => "G",
                 Color::Black => "B",
                 Color::Commander => "C",
+                Color::Special => panic!("called Color::Special::prefix()"),
+                Color::SpecialCommander => panic!("called Color::SpecialCommander::prefix()"),
             },
             GameLanguage::De => match self {
                 Color::White => "W",
                 Color::Gray => "G",
                 Color::Black => "S",
                 Color::Commander => "K",
+                Color::Special => panic!("called Color::Special::prefix()"),
+                Color::SpecialCommander => panic!("called Color::SpecialCommander::prefix()"),
             },
         }
     }
@@ -168,113 +179,8 @@ impl Color {
             Color::White => "w",
             Color::Gray => "g",
             Color::Black => "b",
-            Color::Commander => "c",
-        }
-    }
-}
-
-#[cfg_attr(feature = "debug", derive(Debug, Serialize))]
-#[derive(Copy, Clone, EnumTools, PartialEq, Eq, Hash)]
-#[enum_tools(iter, into)]
-#[repr(u8)]
-#[allow(dead_code)]
-pub(crate) enum Special {
-    // Core
-    UndeadKing,
-    UndeadKingsMinion,
-    CommanderBrute,
-    MurderousApparition,
-    ManifestationOfWrath,
-    DrifterApparition,
-    TormentOfEnvy,
-    DireExecutioner,
-    // Apocalypse
-    SowerCultist,
-    FellWarcaller,
-    ScenarioCommander,
-    UnstableDevourer,
-    PlagueHorseman,
-    WarHorsewoman,
-    FamineHorseman,
-    DeathHorsewoman,
-    // Awakening
-    SkeletonSentry,
-}
-
-impl Special {
-    pub(crate) fn name(self, game_language: GameLanguage) -> &'static str {
-        match game_language {
-            GameLanguage::En => match self {
-                // Core
-                Special::UndeadKing => "Undead King",
-                Special::UndeadKingsMinion => "Undead King's Minion",
-                Special::CommanderBrute => "Brute",
-                Special::MurderousApparition => "Murderous Apparition",
-                Special::ManifestationOfWrath => "Manifestation of Wrath",
-                Special::DrifterApparition => "Drifter Apparition",
-                Special::TormentOfEnvy => "Torment of Envy",
-                Special::DireExecutioner => "Dire Executioner",
-                // Apocalypse
-                Special::SowerCultist => "Sower Cultist",
-                Special::FellWarcaller => "Fell Warcaller",
-                Special::ScenarioCommander => "Scenario Commander",
-                Special::UnstableDevourer => "Unstable Devourer",
-                Special::PlagueHorseman => "Plague Horseman",
-                Special::WarHorsewoman => "War Horsewoman",
-                Special::FamineHorseman => "Famine Horseman",
-                Special::DeathHorsewoman => "Death Horsewoman",
-                // Awakening
-                Special::SkeletonSentry => "Skeleton Sentry",
-            },
-            GameLanguage::De => match self {
-                // Core
-                Special::UndeadKing => "Untoter König",
-                Special::UndeadKingsMinion => "Undead King's Minion",
-                Special::CommanderBrute => "Scheusal",
-                Special::MurderousApparition => "Mordende Erscheinung",
-                Special::ManifestationOfWrath => "Manifestation des Zorns",
-                Special::DrifterApparition => "Treibende Erscheinung",
-                Special::TormentOfEnvy => "Qual der Gier",
-                Special::DireExecutioner => "Henker des Schreckens",
-                // Apocalypse
-                Special::SowerCultist => "Kultistensäer",
-                Special::FellWarcaller => "Dämonenschreier",
-                Special::ScenarioCommander => "Szenariokommandant",
-                Special::UnstableDevourer => "Verzehrender Golem",
-                Special::PlagueHorseman => "Reiter der Pest",
-                Special::WarHorsewoman => "Reiterin des Krieges",
-                Special::FamineHorseman => "Reiter des Hungers",
-                Special::DeathHorsewoman => "Reiterin des Todes",
-                // Awakening
-                Special::SkeletonSentry => "Skelettwächter",
-            },
-        }
-    }
-
-    pub(crate) fn monster(self) -> Option<&'static str> {
-        match self {
-            Special::UndeadKing
-            | Special::CommanderBrute
-            | Special::ScenarioCommander
-            | Special::PlagueHorseman
-            | Special::WarHorsewoman
-            | Special::FamineHorseman
-            | Special::DeathHorsewoman => None, // Special
-            Special::UndeadKingsMinion | Special::SkeletonSentry => Some("Skeleton Archer"),
-            Special::MurderousApparition => Some("Shadow Vampire"),
-            Special::ManifestationOfWrath => Some("Shadow Knight"),
-            Special::TormentOfEnvy => Some("Abomination"),
-            Special::DrifterApparition | Special::DireExecutioner => Some("Executioner"),
-            Special::FellWarcaller => Some("Shadow Witch"),
-            Special::SowerCultist => Some("Shadow Cultist"),
-            Special::UnstableDevourer => Some("Rotten Flesh"),
-        }
-    }
-
-    pub(crate) fn color(self) -> Option<Color> {
-        match self {
-            Special::ScenarioCommander => Some(Color::Commander),
-            _ => None,
+            Color::Commander | Color::SpecialCommander => "c",
+            Color::Special => panic!("called Color::Special::prefix_lower()"),
         }
     }
 }
@@ -286,7 +192,6 @@ pub(crate) enum Level {
     Fighter,
     Veteran,
     Champion,
-    Special(Option<Special>),
 }
 
 impl Level {
@@ -296,7 +201,6 @@ impl Level {
             Level::Fighter => "Fi",
             Level::Veteran => "Ve",
             Level::Champion => "Ch",
-            Level::Special(_) => "Sp",
         }
     }
 
@@ -306,7 +210,6 @@ impl Level {
             Level::Fighter => "fi",
             Level::Veteran => "ve",
             Level::Champion => "ch",
-            Level::Special(_) => "sp",
         }
     }
 
@@ -317,347 +220,16 @@ impl Level {
                 Level::Fighter => "Fighter",
                 Level::Veteran => "Veteran",
                 Level::Champion => "Champion",
-                Level::Special(s) => s.map_or("", |s| s.name(game_language)),
             },
             GameLanguage::De => match self {
                 Level::Rookie => "Novize",
                 Level::Fighter => "Kämpfer",
                 Level::Veteran => "Veteran",
                 Level::Champion => "Meister",
-                Level::Special(s) => s.map_or("", |s| s.name(game_language)),
             },
         }
     }
 }
-
-pub(crate) const MONSTERS: &[&Monster] = &[
-    // Core
-    &Monster {
-        name_en: "Abomination",
-        name_de: "Abscheulichkeit",
-        content: Content::Core,
-        color: Color::Black,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Archon",
-        name_de: "Archon",
-        content: Content::Core,
-        color: Color::Commander,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Bane",
-        name_de: "Bane",
-        content: Content::Core,
-        color: Color::Commander,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Executioner",
-        name_de: "Vollstrecker",
-        content: Content::Core,
-        color: Color::Gray,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Rotten Flesh",
-        name_de: "Fleischgolem",
-        content: Content::Core,
-        color: Color::Gray,
-        has_complex: true,
-    },
-    &Monster {
-        name_en: "Shadow Cultist",
-        name_de: "Schattenkultist",
-        content: Content::Core,
-        color: Color::White,
-        has_complex: true,
-    },
-    &Monster {
-        name_en: "Shadow Knight",
-        name_de: "Schattenritter",
-        content: Content::Core,
-        color: Color::Black,
-        has_complex: true,
-    },
-    &Monster {
-        name_en: "Shadow Vampire",
-        name_de: "Schattenvampir",
-        content: Content::Core,
-        color: Color::Gray,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Skeleton Archer",
-        name_de: "Skelettbogenschütze",
-        content: Content::Core,
-        color: Color::White,
-        has_complex: false,
-    },
-    // Apocalypse
-    &Monster {
-        name_en: "Dream Titan",
-        name_de: "Traumtitan",
-        content: Content::Apocalypse,
-        color: Color::Black,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Faceless Conjurer",
-        name_de: "Anonymer Gaukler",
-        content: Content::Apocalypse,
-        color: Color::Gray,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Hellish Flayer",
-        name_de: "Höllenhäuter",
-        content: Content::Apocalypse,
-        color: Color::Gray,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Shadow Witch",
-        name_de: "Schattenhexe",
-        content: Content::Apocalypse,
-        color: Color::White,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Skeleton Knight",
-        name_de: "Knochenritter",
-        content: Content::Apocalypse,
-        color: Color::White,
-        has_complex: false,
-    },
-    // Awakenings
-    &Monster {
-        name_en: "Doctor",
-        name_de: "Böse Koryphäe",
-        content: Content::Awakenings,
-        color: Color::Commander,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Fell Asteris",
-        name_de: "Todeshorn",
-        content: Content::Awakenings,
-        color: Color::Gray,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Flinch",
-        name_de: "Nachtschrecken",
-        content: Content::Awakenings,
-        color: Color::Commander,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Gorgon Hexer",
-        name_de: "Gorgonenfluch",
-        content: Content::Awakenings,
-        color: Color::Gray,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Gorgoness Witch",
-        name_de: "Gorgonenhexe",
-        content: Content::Awakenings,
-        color: Color::White,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Gremlin Horde",
-        name_de: "Gremlinhorde",
-        content: Content::Awakenings,
-        color: Color::White,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Grim Doctor",
-        name_de: "Böser Doktor",
-        content: Content::Awakenings,
-        color: Color::White,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Hellspawn Brute",
-        name_de: "Höllenbrut",
-        content: Content::Awakenings,
-        color: Color::Gray,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Hexer",
-        name_de: "Legendärer Fluch",
-        content: Content::Awakenings,
-        color: Color::Commander,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Horde",
-        name_de: "Anführer der Horde",
-        content: Content::Awakenings,
-        color: Color::Commander,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Hunter",
-        name_de: "Jagdführer",
-        content: Content::Awakenings,
-        color: Color::Commander,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Nagian Hunter",
-        name_de: "Nagischer Jäger",
-        content: Content::Awakenings,
-        color: Color::White,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Night Stalker",
-        name_de: "Jäger der Nacht",
-        content: Content::Awakenings,
-        color: Color::Gray,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Ox",
-        name_de: "Minotaurus",
-        content: Content::Awakenings,
-        color: Color::Commander,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Spawn",
-        name_de: "Brutkommandant",
-        content: Content::Awakenings,
-        color: Color::Commander,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Witch",
-        name_de: "Oberhexe",
-        content: Content::Awakenings,
-        color: Color::Commander,
-        has_complex: false,
-    },
-    // DesertOfHellscar
-    &Monster {
-        name_en: "Corrupted Worm",
-        name_de: "Verdorbener Lindwurm",
-        content: Content::DesertOfTheHellscar,
-        color: Color::Gray,
-        has_complex: false,
-    },
-    // FallenSisters
-    &Monster {
-        name_en: "Fallen Sisters",
-        name_de: "Fallen Sisters",
-        content: Content::FallenSisters,
-        color: Color::Commander,
-        has_complex: false,
-    },
-    // MonsterPack1
-    &Monster {
-        name_en: "Death Messenger",
-        name_de: "Todesbote",
-        content: Content::MonsterPack1,
-        color: Color::Gray,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Scout Of Darkness",
-        name_de: "Dunkler Späher",
-        content: Content::MonsterPack1,
-        color: Color::White,
-        has_complex: false,
-    },
-    // RiseOfTheUndeadDragon
-    &Monster {
-        name_en: "Corrupted Farmer",
-        name_de: "Verdorbener Baue",
-        content: Content::RiseOfTheUndeadDragon,
-        color: Color::White,
-        has_complex: false,
-    },
-    // SpoilsOfWar
-    &Monster {
-        name_en: "Bone Reaper",
-        name_de: "Sensenmann",
-        content: Content::SpoilsOfWar,
-        color: Color::Gray,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Shadow Mistress",
-        name_de: "Schattenherrin",
-        content: Content::SpoilsOfWar,
-        color: Color::White,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Thern",
-        name_de: "Thern",
-        content: Content::SpoilsOfWar,
-        color: Color::Commander,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Twin",
-        name_de: "Twins",
-        content: Content::SpoilsOfWar,
-        color: Color::Commander,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Walking Horror",
-        name_de: "Wanderschrecken",
-        content: Content::SpoilsOfWar,
-        color: Color::White,
-        has_complex: false,
-    },
-    // TheRuinOfLuccanor
-    &Monster {
-        name_en: "Lady Claw",
-        name_de: "Klauennatter",
-        content: Content::TheRuinOfLuccanor,
-        color: Color::Gray,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Ravager",
-        name_de: "Verwüster",
-        content: Content::TheRuinOfLuccanor,
-        color: Color::White,
-        has_complex: false,
-    },
-    // TheShadowWorld
-    &Monster {
-        name_en: "Shadow Guardian",
-        name_de: "Schattenwächter",
-        content: Content::TheShadowWorld,
-        color: Color::Gray,
-        has_complex: false,
-    },
-    &Monster {
-        name_en: "Shadow Pain",
-        name_de: "Schattenschmerz",
-        content: Content::TheShadowWorld,
-        color: Color::White,
-        has_complex: false,
-    },
-];
-
-pub(crate) const MONSTER_VERY_SPECIAL: &Monster = &Monster {
-    name_en: "",
-    name_de: "",
-    content: Content::Core,
-    color: Color::Commander,
-    has_complex: false,
-};
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(
@@ -692,12 +264,13 @@ pub enum GameLanguage {
     De,
 }
 
-#[test]
-fn test() {
-    use std::collections::HashSet;
+mod generated {
+    use crate::game::{Chapter, Color, Content, GameLanguage, Level, Number};
+    use crate::setup::{Setup, SetupItem};
+    use enum_tools::EnumTools;
+    #[cfg(feature = "debug")]
+    use serde::Serialize;
 
-    let mut x = HashSet::new();
-    for m in MONSTERS {
-        assert!(x.insert(m.name_en), "Duplicate monster name");
-    }
+    include!(concat!(env!("OUT_DIR"), "/generated_monster.rs"));
+    include!(concat!(env!("OUT_DIR"), "/generated_setup.rs"));
 }
