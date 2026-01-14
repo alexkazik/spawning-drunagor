@@ -1,0 +1,63 @@
+Content,Name,Color,Miniature,Name German
+Core,Abomination,Black,self,Abscheulichkeit
+Core,Archon,Commander,Shadow Cultist,Archon
+Core,Bane,Commander,Shadow Vampire,Bane
+Core,Brute,SpecialCommander,Abomination,Scheusal
+Core,Dire Executioner,Special,Executioner,Henker des Schreckens
+Core,Drifter Apparition,Special,Executioner,Treibende Erscheinung
+Core,Executioner,Gray,self,Vollstrecker
+Core,Manifestation of Wrath,Special,Shadow Knight,Manifestation des Zorns
+Core,Murderous Apparition,Special,Shadow Vampire,Mordende Erscheinung
+Core,Rotten Flesh,Gray,self,Fleischgolem
+Core,Shadow Cultist,White,self,Schattenkultist
+Core,Shadow Knight,Black,self,Schattenritter
+Core,Shadow Vampire,Gray,self,Schattenvampir
+Core,Skeleton Archer,White,self,Skelettbogenschütze
+Core,Torment of Envy,Special,Abomination,Qual der Gier
+Core,Undead King,Special,self,Untoter König
+Core,Undead King's Minion,Special,Skeleton Archer,Undead King's Minion
+Apocalypse,Death Horsewoman,Special,self,Reiterin des Todes
+Apocalypse,Dream Titan,Black,self,Traumtitan
+Apocalypse,Faceless Conjurer,Gray,self,Anonymer Gaukler
+Apocalypse,Famine Horseman,Special,self,Reiter des Hungers
+Apocalypse,Fell Warcaller,Special,Shadow Witch,Dämonenschreier
+Apocalypse,Golem,SpecialCommander,Shadow Knight,Schattengolem
+Apocalypse,Hellish Flayer,Gray,self,Höllenhäuter
+Apocalypse,Plague Horseman,Special,self,Reiter der Pest
+Apocalypse,Shadow Witch,White,self,Schattenhexe
+Apocalypse,Skeleton Knight,White,self,Knochenritter
+Apocalypse,Sower Cultist,Special,Shadow Cultist,Kultistensäer
+Apocalypse,Unstable Devourer,Special,Rotten Flesh,Verzehrender Golem
+Apocalypse,War Horsewoman,Special,self,Reiterin des Krieges
+Awakenings,Doctor,Commander,Grim Doctor,Böse Koryphäe
+Awakenings,Fell Asteris,Gray,self,Todeshorn
+Awakenings,Flinch,Commander,Night Stalker,Nachtschrecken
+Awakenings,Gorgon Hexer,Gray,self,Gorgonenfluch
+Awakenings,Gorgoness Witch,White,self,Gorgonenhexe
+Awakenings,Gremlin Horde,White,self,Gremlinhorde
+Awakenings,Grim Doctor,White,self,Böser Doktor
+Awakenings,Hellspawn Brute,Gray,self,Höllenbrut
+Awakenings,Hexer,Commander,Gorgon Hexer,Legendärer Fluch
+Awakenings,Horde,Commander,Gremlin Horde,Anführer der Horde
+Awakenings,Hunter,Commander,Nagian Hunter,Jagdführer
+Awakenings,Nagian Hunter,White,self,Nagischer Jäger
+Awakenings,Night Stalker,Gray,self,Jäger der Nacht
+Awakenings,Ox,Commander,Fell Asteris,Minotaurus
+Awakenings,Skeleton Sentry,Special,Skeleton Archer,Skelettwächter
+Awakenings,Soul Harvester,Commander,self,Seelenfänger
+Awakenings,Spawn,Commander,Hellspawn Brute,Brutkommandant
+Awakenings,Witch,Commander,Gorgoness Witch,Oberhexe
+DesertOfTheHellscar,Corrupted Worm,Gray,self,Verdorbener Lindwurm
+FallenSisters,Fallen Sisters,Commander,self,Fallen Sisters
+MonsterPack1,Death Messenger,Gray,self,Todesbote
+MonsterPack1,Scout Of Darkness,White,self,Dunkler Späher
+RiseOfTheUndeadDragon,Corrupted Farmer,White,self,Verdorbener Baue
+SpoilsOfWar,Bone Reaper,Gray,self,Sensenmann
+SpoilsOfWar,Shadow Mistress,White,self,Schattenherrin
+SpoilsOfWar,Thern,Commander,self,Thern
+SpoilsOfWar,Twin,Commander,self,Twins
+SpoilsOfWar,Walking Horror,White,self,Wanderschrecken
+TheRuinOfLuccanor,Lady Claw,Gray,self,Klauennatter
+TheRuinOfLuccanor,Ravager,White,self,Verwüster
+TheShadowWorld,Shadow Guardian,Gray,self,Schattenwächter
+TheShadowWorld,Shadow Pain,White,self,Schattenschmerz

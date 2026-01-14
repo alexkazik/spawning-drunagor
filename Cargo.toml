@@ -17,9 +17,19 @@ yew = { version = "0.21", default-features = false, features = ["csr"] }
 yew-bootstrap = { version = "0.13", default-features = false }
 yewdux = { version = "0.11.0", default-features = false }
 
+[build-dependencies]
+anyhow = "1.0.100"
+generator = { path = "generator" }
+
 [features]
 default = ["debug"]
 debug = ["dep:serde-wasm-bindgen", "dep:web-sys"]
 
 [[bin]]
 name = "copy-and-link"
+
+[workspace]
+members = [
+    ".",
+    "generator",
+]
