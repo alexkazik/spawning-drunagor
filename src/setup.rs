@@ -105,7 +105,7 @@ impl Setup {
                     b'2' => Number::Two,
                     b'3' => Number::Three,
                     b'4' => Number::Four,
-                    b'5' => Number::Fife,
+                    b'5' => Number::Five,
                     _ => panic!("unknown number \"{f1}\" on \"{}\"", fields.join(",")),
                 };
                 let le = match co {

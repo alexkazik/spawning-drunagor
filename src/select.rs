@@ -37,7 +37,7 @@ pub(crate) enum Number {
     #[enum_tools(rename = "4")]
     Four = 4,
     #[enum_tools(rename = "5")]
-    Fife = 5,
+    Five = 5,
 }
 
 #[cfg_attr(feature = "debug", derive(Debug, Serialize))]

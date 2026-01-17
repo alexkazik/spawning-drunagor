@@ -47,7 +47,7 @@ impl Default for Settings {
             msg: MsgLanguage::default(),
             content: HashSet::from([Content::Core]),
             preset: true,
-            players: Number::Fife,
+            players: Number::Five,
             preset_content: Content::Core,
             preset_chapter: Chapter(1),
             new_list_mode: true,
