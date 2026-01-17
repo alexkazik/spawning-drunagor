@@ -1,6 +1,8 @@
 use crate::game::{Color, Content};
+use anyhow::Context;
 use std::collections::HashSet;
 use std::fmt::Write;
+use std::fs;
 use std::fs::exists;
 use std::str::FromStr;
 
@@ -19,6 +21,38 @@ pub fn monsters<W: Write>(output: &mut W) -> Result<Vec<Mns>, anyhow::Error> {
         }
         s
     });
+
+    if false {
+        let mut new_csv = String::new();
+        new_csv.push_str("Content,Name,Color,Miniature,Name German,Image\n");
+        for monster in &monsters {
+            new_csv.push_str(monster.content.as_str());
+            new_csv.push(',');
+            new_csv.push_str(monster.name_en);
+            new_csv.push(',');
+            new_csv.push_str(monster.color.as_str());
+            new_csv.push(',');
+            new_csv.push_str(monster.miniature);
+            new_csv.push(',');
+            new_csv.push_str(monster.name_de);
+            new_csv.push(',');
+            new_csv.push_str(if monster.miniature != "self" {
+                "-"
+            } else if monster.image.is_some() {
+                "yes"
+            } else {
+                "no"
+            });
+            new_csv.push('\n');
+        }
+        if include_str!("monsters.csv") != new_csv {
+            fs::write(
+                format!("{}/src/monsters.csv", env!("CARGO_MANIFEST_DIR")),
+                new_csv,
+            )
+            .context("Failed to write CSV back")?;
+        }
+    }
 
     writeln!(
         output,

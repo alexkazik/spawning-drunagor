@@ -208,6 +208,46 @@ impl Reducer<SelectStore> for Randomize {
     }
 }
 
+pub(crate) struct NextSetup;
+impl Reducer<SelectStore> for NextSetup {
+    fn apply(self, mut rc_state: Rc<SelectStore>) -> Rc<SelectStore> {
+        let state = Rc::make_mut(&mut rc_state);
+        let rc_settings = Dispatch::<Settings>::global().get();
+        if let Some(current_setup) = state.setup {
+            let mut current_pos = SETUPS.iter().position(|s| {
+                s.content == current_setup.0
+                    && s.chapter == current_setup.1
+                    && s.name(rc_settings.game_language) == current_setup.2
+            });
+
+            if let Some(pos) = current_pos
+                && pos + 1 == SETUPS.len()
+            {
+                current_pos = None;
+            }
+
+            let setup = &SETUPS[current_pos.map_or(0, |p| p + 1)];
+
+            {
+                let mut selected = state.selected.borrow_mut();
+                selected.clear();
+                for item in setup.monsters {
+                    selected.push(item.clone());
+                }
+            }
+            state.output(None, false);
+            let rc_settings = Dispatch::<Settings>::global().get();
+            state.setup = Some((
+                setup.content,
+                setup.chapter,
+                setup.name(rc_settings.game_language),
+            ));
+        }
+
+        rc_state
+    }
+}
+
 struct Remove(usize);
 impl Reducer<SelectStore> for Remove {
     fn apply(self, mut rc_state: Rc<SelectStore>) -> Rc<SelectStore> {

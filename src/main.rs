@@ -10,7 +10,7 @@
 
 use crate::game::{Chapter, Content, GameLanguage, Number};
 use crate::msg::MsgLanguage;
-use crate::select::{Item, Randomize, Select, SelectStore};
+use crate::select::{Item, NextSetup, Randomize, Select, SelectStore};
 use core::ops::Deref;
 use getrandom as _; // is only used indirectly through rand but is required to activate feature
 use std::collections::{HashSet, VecDeque};
@@ -197,6 +197,7 @@ fn App() -> Html {
             .collect::<Vec<_>>()
     };
     let randomize = select_dispatch.apply_callback(|_| Randomize);
+    let next_setup = select_dispatch.apply_callback(|_| NextSetup);
     let toggle_list_type = dispatch.apply_callback(|_| ToggleListType);
 
     let click_use_preset = dispatch.apply_callback(|_| true);
@@ -323,6 +324,7 @@ fn App() -> Html {
                                     {name}
                                 </Alert>
                             }
+                            <Button style={Color::Secondary} outline={true} onclick={next_setup}>{BI::ARROW_RIGHT}</Button>
                             if select.output.borrow().is_empty() {
                                 <Alert style={Color::Secondary}>{"This setup has no monsters"}</Alert>
                             }else{

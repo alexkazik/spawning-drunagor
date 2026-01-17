@@ -20,3 +20,14 @@ pub fn run(out_dir: &OsStr) -> Result<(), anyhow::Error> {
 
     Ok(())
 }
+
+#[test]
+fn test() {
+    let mut output = String::new();
+
+    let monsters = monsters(&mut output).unwrap();
+    setup(&mut output, &monsters).unwrap();
+
+    eprint!("{}", output);
+    todo!();
+}
