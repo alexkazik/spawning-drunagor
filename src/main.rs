@@ -326,7 +326,7 @@ fn App() -> Html {
                             if select.output.borrow().is_empty() {
                                 <Alert style={Color::Secondary}>{"This setup has no monsters"}</Alert>
                             }else{
-                                <table class="table">
+                                <table class="table" style="width: auto">
                                     <tbody>
                                         {for list}
                                     </tbody>
@@ -498,10 +498,17 @@ fn render_list_new(settings: &Rc<Settings>, output: impl Deref<Target = Vec<Item
             })
             .collect::<Vec<_>>();
 
-        let extra = if let Some(monster) = monster.miniature() {
-            format!(", {}", monster.color().short(settings.game_language))
+        let extra = if let Some(miniature) = monster.miniature() {
+            format!(", {}", miniature.color().short(settings.game_language))
         } else {
             String::new()
+        };
+        let image = match monster.miniature().unwrap_or(monster).image() {
+            Some(image) => {
+                let src = format!("miniature/{image}");
+                html! {<img src={src} style="max-width: 100px; max-height: 100px;" />}
+            }
+            None => html! {},
         };
         result.push(html! {
             <tr>
@@ -517,6 +524,7 @@ fn render_list_new(settings: &Rc<Settings>, output: impl Deref<Target = Vec<Item
                     <br/>
                     {icons}
                 </td>
+                <td align="right">{image}</td>
             </tr>
         });
     }

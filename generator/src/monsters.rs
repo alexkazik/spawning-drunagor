@@ -1,6 +1,7 @@
 use crate::game::{Color, Content};
 use std::collections::HashSet;
 use std::fmt::Write;
+use std::fs::exists;
 use std::str::FromStr;
 
 pub fn monsters<W: Write>(output: &mut W) -> Result<Vec<Mns>, anyhow::Error> {
@@ -102,6 +103,21 @@ pub fn monsters<W: Write>(output: &mut W) -> Result<Vec<Mns>, anyhow::Error> {
     writeln!(output, "            }},")?;
     writeln!(output, "        }}")?;
     writeln!(output, "    }}")?;
+    writeln!(
+        output,
+        "    pub(crate) fn image(self) -> Option<&'static str> {{"
+    )?;
+    writeln!(output, "        #[allow(clippy::match_same_arms)]")?;
+    writeln!(output, "        match self {{")?;
+    for monster in &monsters {
+        writeln!(
+            output,
+            "            Monster::{} => {:#?},",
+            &monster.ident, &monster.image
+        )?;
+    }
+    writeln!(output, "        }}")?;
+    writeln!(output, "    }}")?;
     writeln!(output, "}}")?;
 
     Ok(monsters)
@@ -114,17 +130,39 @@ pub(crate) struct Mns {
     miniature: &'static str,
     name_de: &'static str,
     pub(crate) ident: String,
+    image: Option<String>,
 }
 
 fn monster_read(line: Vec<&'static str>) -> Mns {
+    let content =
+        Content::from_str(line[0]).unwrap_or_else(|_| panic!("Unknown content: {}", line[0]));
+    let name_en = line[1];
+    let color = Color::from_str(line[2]).unwrap_or_else(|_| panic!("Unknown color: {}", line[2]));
+    let miniature = line[3];
+    let name_de = line[4];
+
+    let ident = name_to_ident(name_en);
+    let image = if miniature == "self"
+        && exists(format!(
+            "{}/../static/miniature/{}{ident}.jpeg",
+            env!("CARGO_MANIFEST_DIR"),
+            content.image_prefix(),
+        ))
+        .unwrap()
+    {
+        Some(format!("{}{ident}.jpeg", content.image_prefix(),))
+    } else {
+        None
+    };
+
     Mns {
-        content: Content::from_str(line[0])
-            .unwrap_or_else(|_| panic!("Unknown content: {}", line[0])),
-        name_en: line[1],
-        color: Color::from_str(line[2]).unwrap_or_else(|_| panic!("Unknown color: {}", line[2])),
-        miniature: line[3],
-        name_de: line[4],
-        ident: name_to_ident(line[1]),
+        content,
+        name_en,
+        color,
+        miniature,
+        name_de,
+        ident,
+        image,
     }
 }
 

@@ -1,7 +1,7 @@
 use enum_tools::EnumTools;
 
 #[derive(EnumTools, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
-#[enum_tools(Display, FromStr)]
+#[enum_tools(Display, FromStr, as_str)]
 #[repr(u8)]
 #[allow(dead_code)]
 pub(crate) enum Content {
@@ -15,6 +15,13 @@ pub(crate) enum Content {
     SpoilsOfWar,
     TheRuinOfLuccanor,
     TheShadowWorld,
+}
+
+impl Content {
+    pub(crate) fn image_prefix(&self) -> &'static str {
+        let name = self.as_str().trim_start_matches("The");
+        &name[0..2]
+    }
 }
 
 #[derive(Copy, Clone, EnumTools, PartialEq, Eq)]
