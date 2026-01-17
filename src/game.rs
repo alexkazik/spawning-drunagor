@@ -1,5 +1,6 @@
 use enum_tools::EnumTools;
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[cfg_attr(feature = "debug", derive(Debug, Serialize))]
 pub(crate) struct Monster {
@@ -657,6 +658,26 @@ pub(crate) const MONSTER_VERY_SPECIAL: &Monster = &Monster {
     color: Color::Commander,
     has_complex: false,
 };
+
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(
+    Copy, Clone, Eq, PartialEq, EnumTools, Ord, PartialOrd, Deserialize_repr, Serialize_repr,
+)]
+#[enum_tools(as_str, iter)]
+#[repr(u8)]
+#[allow(dead_code)] // only constructed via enum_tools
+pub(crate) enum Number {
+    #[enum_tools(rename = "1")]
+    One = 1,
+    #[enum_tools(rename = "2")]
+    Two = 2,
+    #[enum_tools(rename = "3")]
+    Three = 3,
+    #[enum_tools(rename = "4")]
+    Four = 4,
+    #[enum_tools(rename = "5")]
+    Five = 5,
+}
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Copy, Clone, Eq, PartialEq, EnumTools, serde::Serialize, serde::Deserialize)]

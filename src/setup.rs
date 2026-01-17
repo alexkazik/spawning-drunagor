@@ -1,7 +1,7 @@
 use crate::game::{
-    Chapter, Color, Content, GameLanguage, Level, MONSTER_VERY_SPECIAL, MONSTERS, Special,
+    Chapter, Color, Content, GameLanguage, Level, MONSTER_VERY_SPECIAL, MONSTERS, Number, Special,
 };
-use crate::select::{Item, Number};
+use crate::select::Item;
 use core::str::FromStr;
 #[cfg(feature = "debug")]
 use serde::Serialize;
