@@ -1,4 +1,4 @@
-use crate::monster::monster;
+use crate::monster::{monster, monster_image};
 use crate::setup::setup;
 use anyhow::Context;
 use std::ffi::OsStr;
@@ -12,6 +12,7 @@ mod setup;
 pub fn run(out_dir: &OsStr) -> Result<(), anyhow::Error> {
     let (generated_monster, monsters) = monster().context("function monster")?;
     let generated_setup = setup(&monsters).context("function setup")?;
+    let generated_monster_image = monster_image(&monsters).context("function monster_image")?;
 
     fs::write(
         Path::new(out_dir).join("generated_monster.rs"),
@@ -24,6 +25,12 @@ pub fn run(out_dir: &OsStr) -> Result<(), anyhow::Error> {
         &generated_setup,
     )
     .context("Failed to write generated_setup")?;
+
+    fs::write(
+        Path::new(out_dir).join("generated_monster_image.rs"),
+        &generated_monster_image,
+    )
+    .context("Failed to write generated_monster_image")?;
 
     Ok(())
 }

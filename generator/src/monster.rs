@@ -1,7 +1,8 @@
 use crate::game::{Color, Content};
-use anyhow::{anyhow, bail};
-use std::collections::HashSet;
+use anyhow::{Context, anyhow, bail};
+use std::collections::{HashMap, HashSet};
 use std::fmt::Write;
+use std::fs::{self, exists};
 use std::str::FromStr;
 
 pub fn monster() -> Result<(String, Vec<Mns>), anyhow::Error> {
@@ -20,6 +21,15 @@ pub fn monster() -> Result<(String, Vec<Mns>), anyhow::Error> {
             Ok(s)
         }
     })?;
+
+    let mut all_images = HashMap::new();
+    for monster in &monsters {
+        if let Some((src, dst)) = &monster.image
+            && let Some(other_src) = all_images.insert(dst, src)
+        {
+            bail!("Duplicate image: src1={other_src}, src1={src}, dst={dst}");
+        }
+    }
 
     let mut output = String::new();
 
@@ -106,6 +116,22 @@ pub fn monster() -> Result<(String, Vec<Mns>), anyhow::Error> {
     writeln!(output, "            }},")?;
     writeln!(output, "        }}")?;
     writeln!(output, "    }}")?;
+    writeln!(
+        output,
+        "    pub(crate) fn image(self) -> Option<&'static str> {{"
+    )?;
+    writeln!(output, "        #[allow(clippy::match_same_arms)]")?;
+    writeln!(output, "        match self {{")?;
+    for monster in &monsters {
+        writeln!(
+            output,
+            "            Monster::{} => {:?},",
+            &monster.ident,
+            monster.image.as_ref().map(|i| &i.1)
+        )?;
+    }
+    writeln!(output, "        }}")?;
+    writeln!(output, "    }}")?;
     writeln!(output, "}}")?;
 
     Ok((output, monsters))
@@ -118,6 +144,7 @@ pub(crate) struct Mns {
     miniature: &'static str,
     name_de: &'static str,
     pub(crate) ident: String,
+    image: Option<(String, String)>,
 }
 
 fn monster_read(line: Vec<&'static str>) -> anyhow::Result<Mns> {
@@ -129,6 +156,25 @@ fn monster_read(line: Vec<&'static str>) -> anyhow::Result<Mns> {
     let name_de = line[4];
     let ident = name_to_ident(name_en);
 
+    let image_path = format!(
+        "{}/../static/miniature/{}{ident}.jpeg",
+        env!("CARGO_MANIFEST_DIR"),
+        content.image_prefix(),
+    );
+    let image = if miniature == "self" && exists(&image_path).context("stat image")? {
+        let digest = md5::compute(fs::read(&image_path).context("reading image")?);
+        let mut dst_filename = format!("{:32x}", digest);
+        dst_filename.truncate(8);
+        dst_filename.push_str(".jpeg");
+
+        Some((
+            format!("{}{ident}.jpeg", content.image_prefix()),
+            dst_filename,
+        ))
+    } else {
+        None
+    };
+
     Ok(Mns {
         content,
         name_en,
@@ -136,9 +182,27 @@ fn monster_read(line: Vec<&'static str>) -> anyhow::Result<Mns> {
         miniature,
         name_de,
         ident,
+        image,
     })
 }
 
 fn name_to_ident(name: &str) -> String {
     name.replace(|c| !char::is_alphanumeric(c), "")
+}
+
+pub(crate) fn monster_image(monsters: &Vec<Mns>) -> anyhow::Result<String> {
+    let mut output = String::new();
+
+    writeln!(
+        &mut output,
+        "pub(crate) const MONSTER_IMAGES: &[(&str,&str)] = &["
+    )?;
+    for monster in monsters {
+        if let Some((src, dst)) = &monster.image {
+            writeln!(&mut output, "    ({src:?}, {dst:?}), ")?;
+        }
+    }
+    writeln!(&mut output, "];")?;
+
+    Ok(output)
 }

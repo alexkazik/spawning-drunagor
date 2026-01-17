@@ -90,10 +90,11 @@ impl Reducer<Settings> for Content {
 impl Reducer<Settings> for bool {
     fn apply(self, mut rc_settings: Rc<Settings>) -> Rc<Settings> {
         let settings = Rc::make_mut(&mut rc_settings);
-        settings.preset = self;
-        if !settings.preset {
+        if settings.preset && !self {
+            // switching from preset to custom: clear list
             Dispatch::<SelectStore>::global().reduce_mut(SelectStore::remove_excluded);
         }
+        settings.preset = self;
         rc_settings
     }
 }
@@ -326,7 +327,7 @@ fn App() -> Html {
                             if select.output.borrow().is_empty() {
                                 <Alert style={Color::Secondary}>{"This setup has no monsters"}</Alert>
                             }else{
-                                <table class="table">
+                                <table class="table" style="width: auto">
                                     <tbody>
                                         {for list}
                                     </tbody>
@@ -505,6 +506,13 @@ fn render_list_new(settings: &Rc<Settings>, output: impl Deref<Target = Vec<Item
         } else {
             String::new()
         };
+        let image = match miniature.image() {
+            Some(image) => {
+                let src = format!("miniature/{image}");
+                html! {<img src={src} style="max-width: 100px; max-height: 100px;" />}
+            }
+            None => html! {},
+        };
         result.push(html! {
             <tr>
                 <td>
@@ -519,6 +527,7 @@ fn render_list_new(settings: &Rc<Settings>, output: impl Deref<Target = Vec<Item
                     <br/>
                     {icons}
                 </td>
+                <td align="right">{image}</td>
             </tr>
         });
     }
