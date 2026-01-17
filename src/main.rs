@@ -8,9 +8,9 @@
 #![allow(clippy::too_many_lines)]
 #![allow(clippy::unsafe_derive_deserialize)]
 
-use crate::game::{Chapter, Content, GameLanguage, Level};
+use crate::game::{Chapter, Content, GameLanguage, Level, Number};
 use crate::msg::MsgLanguage;
-use crate::select::{Item, Number, Randomize, Select, SelectStore};
+use crate::select::{Item, Randomize, Select, SelectStore};
 use core::ops::Deref;
 use getrandom as _; // is only used indirectly through rand but is required to activate feature
 use std::collections::{HashSet, VecDeque};

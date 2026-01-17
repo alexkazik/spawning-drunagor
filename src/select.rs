@@ -4,14 +4,12 @@
 #![allow(clippy::too_many_lines)]
 
 use crate::Settings;
-use crate::game::{Chapter, Color, Content, GameLanguage, Level, MONSTERS, Monster};
+use crate::game::{Chapter, Color, Content, GameLanguage, Level, MONSTERS, Monster, Number};
 use crate::setup::SetupStore;
-use enum_tools::EnumTools;
 use rand::rng;
 use rand::seq::SliceRandom;
 #[cfg(feature = "debug")]
 use serde::Serialize;
-use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use yew::{Html, function_component, html};
@@ -19,26 +17,6 @@ use yew_bootstrap::component::{Alert, Button};
 use yew_bootstrap::icons::BI;
 use yewdux::mrc::Mrc;
 use yewdux::{Dispatch, Reducer, Store, use_store};
-
-#[cfg_attr(feature = "debug", derive(Debug))]
-#[derive(
-    Copy, Clone, Eq, PartialEq, EnumTools, Ord, PartialOrd, Deserialize_repr, Serialize_repr,
-)]
-#[enum_tools(as_str, iter)]
-#[repr(u8)]
-#[allow(dead_code)] // only constructed via enum_tools
-pub(crate) enum Number {
-    #[enum_tools(rename = "1")]
-    One = 1,
-    #[enum_tools(rename = "2")]
-    Two = 2,
-    #[enum_tools(rename = "3")]
-    Three = 3,
-    #[enum_tools(rename = "4")]
-    Four = 4,
-    #[enum_tools(rename = "5")]
-    Five = 5,
-}
 
 #[cfg_attr(feature = "debug", derive(Debug, Serialize))]
 #[derive(Clone, PartialEq)]
