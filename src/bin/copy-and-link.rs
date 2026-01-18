@@ -1,21 +1,22 @@
+use std::fs;
 use std::path::PathBuf;
 use yew_bootstrap::icons::BIFiles;
 
 fn main() -> Result<(), std::io::Error> {
-    let staging_dir = PathBuf::from(
+    let staging_dir_path = PathBuf::from(
         std::env::var("TRUNK_STAGING_DIR").expect("Environment variable TRUNK_STAGING_DIR"),
     );
 
     // copy bootstrap icons
-    let path = staging_dir.join(BIFiles::NAME);
+    let path = staging_dir_path.join(BIFiles::NAME);
     if !path.is_dir() {
-        std::fs::create_dir(&path)?;
+        fs::create_dir(&path)?;
     }
     BIFiles::copy(&path)?;
 
     // update the index.html
-    let path = staging_dir.join("index.html");
-    let index = std::fs::read_to_string(&path)?;
+    let path = staging_dir_path.join("index.html");
+    let index = fs::read_to_string(&path)?;
     let index = index
         .replace(
             "<!include-bootstrap-icons>",
@@ -26,7 +27,7 @@ fn main() -> Result<(), std::io::Error> {
             ),
         )
         .replace("<!version>", env!("CARGO_PKG_VERSION"));
-    std::fs::write(&path, index)?;
+    fs::write(&path, index)?;
 
     Ok(())
 }

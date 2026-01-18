@@ -474,6 +474,8 @@ fn render_list_new(settings: &Rc<Settings>, output: impl Deref<Target = Vec<Item
             }
         }
 
+        let monster = item.monster.unwrap();
+
         let icons = items
             .iter()
             .map(|item| {
@@ -496,11 +498,7 @@ fn render_list_new(settings: &Rc<Settings>, output: impl Deref<Target = Vec<Item
             })
             .collect::<Vec<_>>();
 
-        let miniature = item
-            .monster
-            .unwrap()
-            .miniature()
-            .unwrap_or(item.monster.unwrap());
+        let miniature = monster.miniature().unwrap_or(monster);
 
         let size = if let Some(size) = miniature.color().size(settings.game_language) {
             format!(", {size}")
@@ -510,14 +508,14 @@ fn render_list_new(settings: &Rc<Settings>, output: impl Deref<Target = Vec<Item
         result.push(html! {
             <tr>
                 <td>
-                    {item.monster.unwrap().name(settings.game_language)}{if item.preset {"*"}else{""}}
+                    {monster.name(settings.game_language)}{if item.preset {"*"}else{""}}
                     if !item.color.is_any_commander() && !item.color.is_any_special() {
                         {" - "}{item.level.name(settings.game_language)}
                     }
-                    if let Some(monster) = item.monster.unwrap().miniature() {
+                    if let Some(monster) = monster.miniature() {
                         {" - "}{monster.name(settings.game_language)}
                     }
-                    {" ("}{item.monster.unwrap().content().name(settings.game_language)}{size}{")"}
+                    {" ("}{monster.content().name(settings.game_language)}{size}{")"}
                     <br/>
                     {icons}
                 </td>
