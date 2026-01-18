@@ -474,6 +474,8 @@ fn render_list_new(settings: &Rc<Settings>, output: impl Deref<Target = Vec<Item
             }
         }
 
+        let monster = item.monster.unwrap();
+
         let icons = items
             .iter()
             .map(|item| {
@@ -496,7 +498,7 @@ fn render_list_new(settings: &Rc<Settings>, output: impl Deref<Target = Vec<Item
             })
             .collect::<Vec<_>>();
 
-        let extra = if let Some(monster) = item.monster.unwrap().miniature() {
+        let extra = if let Some(monster) = monster.miniature() {
             format!(", {}", monster.color().short(settings.game_language))
         } else {
             String::new()
@@ -504,9 +506,9 @@ fn render_list_new(settings: &Rc<Settings>, output: impl Deref<Target = Vec<Item
         result.push(html! {
             <tr>
                 <td>
-                    {item.monster.unwrap().name(settings.game_language)}{if item.preset {"*"}else{""}}
-                    {" ("}{item.monster.unwrap().content().name(settings.game_language)}{extra}{")"}
-                    if let Some(monster) = item.monster.unwrap().miniature() {
+                    {monster.name(settings.game_language)}{if item.preset {"*"}else{""}}
+                    {" ("}{monster.content().name(settings.game_language)}{extra}{")"}
+                    if let Some(monster) = monster.miniature() {
                         {" - "}{monster.name(settings.game_language)}
                     }
                     if !item.color.is_any_commander() && !item.color.is_any_special() {
