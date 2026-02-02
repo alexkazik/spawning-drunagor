@@ -51,7 +51,7 @@ impl Content {
                 Content::Apocalypse => "Apocalypse",
                 Content::Awakenings => "Erwachen",
                 Content::DesertOfTheHellscar => "Wüste der Narben",
-                Content::FallenSisters => "Fallen Sisters*",
+                Content::FallenSisters => "Gefallene Schwestern",
                 Content::MonsterPack1 => "Neue Helden & neue Monster",
                 Content::RiseOfTheUndeadDragon => "Der untote Drache",
                 Content::SpoilsOfWar => "Kriegsbeute",
