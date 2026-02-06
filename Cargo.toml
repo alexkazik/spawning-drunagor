@@ -1,6 +1,6 @@
 [package]
 name = "spawning-drunagor"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["ALeX Kazik <alex@kazik.de>"]
 edition = "2024"
 license = "MIT"
