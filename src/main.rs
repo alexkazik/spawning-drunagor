@@ -486,14 +486,14 @@ fn render_list_new(settings: &Rc<Settings>, output: impl Deref<Target = Vec<Item
                     } else if item.color.is_any_special() {
                         "sp"
                     } else {
-                        item.level.id_lower()
+                        item.level.id()
                     };
                     html! {
                         <div class={format!("box_{}",style)}>{BI::PERSON_WALKING}{item.number.as_str()}</div>
                     }
                 } else {
                     html! {
-                        <div class={format!("box_{}_{}", item.color.prefix_lower(), item.level.id_lower())}>{item.color.prefix(settings.game_language)}{item.number.as_str()}</div>
+                        <div class={format!("box_{}_{}", item.color.css_prefix(), item.level.id())}>{item.color.prefix(settings.game_language)}{item.number.as_str()}</div>
                     }
                 }
             })

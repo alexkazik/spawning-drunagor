@@ -174,7 +174,7 @@ impl Color {
         }
     }
 
-    pub(crate) fn prefix_lower(self) -> &'static str {
+    pub(crate) fn css_prefix(self) -> &'static str {
         match self {
             Color::White => "w",
             Color::Gray => "g",
@@ -196,15 +196,6 @@ pub(crate) enum Level {
 
 impl Level {
     pub(crate) fn id(self) -> &'static str {
-        match self {
-            Level::Rookie => "Ro",
-            Level::Fighter => "Fi",
-            Level::Veteran => "Ve",
-            Level::Champion => "Ch",
-        }
-    }
-
-    pub(crate) fn id_lower(self) -> &'static str {
         match self {
             Level::Rookie => "ro",
             Level::Fighter => "fi",
