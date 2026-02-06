@@ -2,6 +2,7 @@ pub(crate) use crate::game::generated::{Monster, SETUPS};
 use enum_tools::EnumTools;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use typed_i18n::TypedI18N;
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(
@@ -33,31 +34,17 @@ pub(crate) enum Content {
 
 impl Content {
     pub(crate) fn name(self, game_language: GameLanguage) -> &'static str {
-        match game_language {
-            GameLanguage::En => match self {
-                Content::Core => "Core",
-                Content::Apocalypse => "Apocalypse",
-                Content::Awakenings => "Awakenings",
-                Content::DesertOfTheHellscar => "Desert of the Hellscar",
-                Content::FallenSisters => "Fallen Sisters",
-                Content::MonsterPack1 => "Monster Pack 1",
-                Content::RiseOfTheUndeadDragon => "Rise of the Undead Dragon",
-                Content::SpoilsOfWar => "Spoils of War",
-                Content::TheRuinOfLuccanor => "The Ruin of Luccanor",
-                Content::TheShadowWorld => "The Shadow World",
-            },
-            GameLanguage::De => match self {
-                Content::Core => "Grundspiel",
-                Content::Apocalypse => "Apocalypse",
-                Content::Awakenings => "Erwachen",
-                Content::DesertOfTheHellscar => "Wüste der Narben",
-                Content::FallenSisters => "Gefallene Schwestern",
-                Content::MonsterPack1 => "Neue Helden & neue Monster",
-                Content::RiseOfTheUndeadDragon => "Der untote Drache",
-                Content::SpoilsOfWar => "Kriegsbeute",
-                Content::TheRuinOfLuccanor => "Admiral Luccanors Verderben",
-                Content::TheShadowWorld => "Die Schattenwelt",
-            },
+        match self {
+            Content::Core => game_language.content_core(),
+            Content::Apocalypse => game_language.content_apocalypse(),
+            Content::Awakenings => game_language.content_awakenings(),
+            Content::DesertOfTheHellscar => game_language.content_desert_of_the_hellscar(),
+            Content::FallenSisters => game_language.content_fallen_sisters(),
+            Content::MonsterPack1 => game_language.content_monster_pack_1(),
+            Content::RiseOfTheUndeadDragon => game_language.content_rise_of_th_undead_dragon(),
+            Content::SpoilsOfWar => game_language.content_spoils_of_war(),
+            Content::TheRuinOfLuccanor => game_language.content_the_ruin_of_luccanor(),
+            Content::TheShadowWorld => game_language.content_the_shadow_world(),
         }
     }
 
@@ -97,80 +84,43 @@ impl Color {
     }
 
     pub(crate) fn name(self, game_language: GameLanguage) -> &'static str {
-        match game_language {
-            GameLanguage::En => match self {
-                Color::White => "White",
-                Color::Gray => "Gray",
-                Color::Black => "Black",
-                Color::Commander => "Commander",
-                Color::Special => panic!("called Color::Special::name()"),
-                Color::SpecialCommander => panic!("called Color::SpecialCommander::name()"),
-            },
-            GameLanguage::De => match self {
-                Color::White => "Weiß",
-                Color::Gray => "Grau",
-                Color::Black => "Schwarz",
-                Color::Commander => "Kommandant",
-                Color::Special => panic!("called Color::Special::name()"),
-                Color::SpecialCommander => panic!("called Color::SpecialCommander::name()"),
-            },
+        match self {
+            Color::White => game_language.color_white_name(),
+            Color::Gray => game_language.color_gray_name(),
+            Color::Black => game_language.color_black_name(),
+            Color::Commander => game_language.color_commander_name(),
+            Color::Special => panic!("called Color::Special::short()"),
+            Color::SpecialCommander => panic!("called Color::SpecialCommander::short()"),
         }
     }
 
     pub(crate) fn short(self, game_language: GameLanguage) -> &'static str {
-        match game_language {
-            GameLanguage::En => match self {
-                Color::White => "WM",
-                Color::Gray => "GM",
-                Color::Black => "BM",
-                Color::Commander => "Commander",
-                Color::Special => panic!("called Color::Special::short()"),
-                Color::SpecialCommander => panic!("called Color::SpecialCommander::short()"),
-            },
-            GameLanguage::De => match self {
-                Color::White => "WM",
-                Color::Gray => "GM",
-                Color::Black => "SM",
-                Color::Commander => "Kommandant",
-                Color::Special => panic!("called Color::Special::short()"),
-                Color::SpecialCommander => panic!("called Color::SpecialCommander::short()"),
-            },
+        match self {
+            Color::White => game_language.color_white_short(),
+            Color::Gray => game_language.color_gray_short(),
+            Color::Black => game_language.color_black_short(),
+            Color::Commander => game_language.color_commander_short(),
+            Color::Special => panic!("called Color::Special::short()"),
+            Color::SpecialCommander => panic!("called Color::SpecialCommander::short()"),
         }
     }
 
     pub(crate) fn size(self, game_language: GameLanguage) -> Option<&'static str> {
-        match game_language {
-            GameLanguage::En => match self {
-                Color::White | Color::Gray => Some("small"),
-                Color::Black => Some("big"),
-                Color::Commander | Color::Special | Color::SpecialCommander => None,
-            },
-            GameLanguage::De => match self {
-                Color::White | Color::Gray => Some("klein"),
-                Color::Black => Some("groß"),
-                Color::Commander | Color::Special | Color::SpecialCommander => None,
-            },
+        match self {
+            Color::White | Color::Gray => Some(game_language.size_small()),
+            Color::Black => Some(game_language.size_big()),
+            Color::Commander | Color::Special | Color::SpecialCommander => None,
         }
     }
 
     pub(crate) fn prefix(self, game_language: GameLanguage) -> &'static str {
-        match game_language {
-            GameLanguage::En => match self {
-                Color::White => "W",
-                Color::Gray => "G",
-                Color::Black => "B",
-                Color::Commander => "C",
-                Color::Special => panic!("called Color::Special::prefix()"),
-                Color::SpecialCommander => panic!("called Color::SpecialCommander::prefix()"),
-            },
-            GameLanguage::De => match self {
-                Color::White => "W",
-                Color::Gray => "G",
-                Color::Black => "S",
-                Color::Commander => "K",
-                Color::Special => panic!("called Color::Special::prefix()"),
-                Color::SpecialCommander => panic!("called Color::SpecialCommander::prefix()"),
-            },
+        match self {
+            Color::White => game_language.color_white_prefix(),
+            Color::Gray => game_language.color_gray_prefix(),
+            Color::Black => game_language.color_black_prefix(),
+            Color::Commander => game_language.color_commander_prefix(),
+            Color::Special => panic!("called Color::Special::prefix()"),
+            Color::SpecialCommander => panic!("called Color::SpecialCommander::prefix()"),
         }
     }
 
@@ -205,19 +155,11 @@ impl Level {
     }
 
     pub(crate) fn name(self, game_language: GameLanguage) -> &'static str {
-        match game_language {
-            GameLanguage::En => match self {
-                Level::Rookie => "Rookie",
-                Level::Fighter => "Fighter",
-                Level::Veteran => "Veteran",
-                Level::Champion => "Champion",
-            },
-            GameLanguage::De => match self {
-                Level::Rookie => "Novize",
-                Level::Fighter => "Kämpfer",
-                Level::Veteran => "Veteran",
-                Level::Champion => "Meister",
-            },
+        match self {
+            Level::Rookie => game_language.level_rookie(),
+            Level::Fighter => game_language.level_fighter(),
+            Level::Veteran => game_language.level_veteran(),
+            Level::Champion => game_language.level_champion(),
         }
     }
 }
@@ -243,9 +185,13 @@ pub(crate) enum Number {
 }
 
 #[cfg_attr(feature = "debug", derive(Debug))]
-#[derive(Copy, Clone, Eq, PartialEq, EnumTools, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Copy, Clone, Eq, PartialEq, EnumTools, TypedI18N, serde::Serialize, serde::Deserialize,
+)]
 #[enum_tools(as_str, iter, names)]
 #[repr(usize)]
+#[typed_i18n(filename = "game.lrc")]
+#[typed_i18n(builder = "static_str")]
 pub enum GameLanguage {
     #[serde(rename = "en")]
     #[enum_tools(rename = "English")]

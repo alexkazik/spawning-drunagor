@@ -1,0 +1,119 @@
+; content
+
+# content_core
+en Core
+de Grundspiel
+
+# content_apocalypse
+en Apocalypse
+de Apocalypse
+
+# content_awakenings
+en Awakenings
+de Erwachen
+
+# content_desert_of_the_hellscar
+en Desert of the Hellscar
+de Wüste der Narben
+
+# content_fallen_sisters
+en Fallen Sisters
+de Gefallene Schwestern
+
+# content_monster_pack_1
+en Monster Pack 1
+de Neue Helden & neue Monster
+
+# content_rise_of_th_undead_dragon
+en Rise of the Undead Dragon
+de Der untote Drache
+
+# content_spoils_of_war
+en Spoils of War
+de Kriegsbeute
+
+# content_the_ruin_of_luccanor
+en The Ruin of Luccanor
+de Admiral Luccanors Verderben
+
+# content_the_shadow_world
+en The Shadow World
+de Die Schattenwelt
+
+; color
+
+# color_white_name
+en White
+de Weiß
+
+# color_white_short
+en WM
+de WM
+
+# color_white_prefix
+en W
+de W
+
+# color_gray_name
+en Gray
+de Grau
+
+# color_gray_short
+en GM
+de GM
+
+# color_gray_prefix
+en G
+de G
+
+# color_black_name
+en Black
+de Schwarz
+
+# color_black_short
+en BM
+de SM
+
+# color_black_prefix
+en B
+de S
+
+# color_commander_name
+en Commander
+de Kommandant
+
+# color_commander_short
+en Commander
+de Kommandant
+
+# color_commander_prefix
+en C
+de K
+
+; size
+
+# size_small
+en small
+de klein
+
+# size_big
+en big
+de groß
+
+; level
+
+# level_rookie
+en Rookie
+de Novize
+
+# level_fighter
+en Fighter
+de Kämpfer
+
+# level_veteran
+en Veteran
+de Veteran
+
+# level_champion
+en Champion
+de Meister

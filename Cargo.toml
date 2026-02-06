@@ -12,6 +12,7 @@ rand = { version = "0.9.2", default-features = false, features = ["thread_rng"] 
 serde = { version = "1", default-features = false, features = ["serde_derive"] }
 serde-wasm-bindgen = { version = "0.6", default-features = false, optional = true }
 serde_repr = { version = "0.1", default-features = false }
+typed-i18n = { version = "0.6.2" }
 web-sys = { version = "0.3", default-features = false, features = ["HtmlTextAreaElement", "HtmlSelectElement"], optional = true }
 yew = { version = "0.21", default-features = false, features = ["csr"] }
 yew-bootstrap = { version = "0.13", default-features = false }
