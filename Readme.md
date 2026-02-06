@@ -2,11 +2,19 @@
 
 Use the tool [here](https://alexkazik.github.io/spawning-drunagor/).
 
+## Missing elements
+
+Only Core (1.5), Spoils of War, Apocalypse and Awakenings have setup instructions and images of miniatures.
+
+(Because I don't own other expansions.)
+
+If you like to help with the missing stuff, please contact me (see below).
+
 ## Translation
 
-Currently the UI can't be translated and it's not that easy to translate the game data.
+Currently the UI can't be translated but the game data can be translated.
 
-Though if you're interested in either one, please contact me
+If you're interested in either one, please contact me
 (via [email](mailto:spawning-drunagor+4575@tx0.eu) or [BGG](https://boardgamegeek.com/geekmail/compose?touser=txnull)).
 
 ## Running it yourself
