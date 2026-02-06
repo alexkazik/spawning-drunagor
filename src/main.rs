@@ -321,7 +321,8 @@ fn App() -> Html {
                                 <Alert style={Color::Light}>
                                     {content.name(settings.game_language)}{" - "}
                                     {chapter.0}{" - "}
-                                    {name}
+                                    {name}{" "}
+                                    <Button style={Color::Primary} outline={true} onclick={randomize}>{BI::ARROW_COUNTERCLOCKWISE}</Button>
                                 </Alert>
                             }
                             if select.output.borrow().is_empty() {
@@ -334,7 +335,6 @@ fn App() -> Html {
                                 </table>
                             }
                             <div>
-                            <Button style={Color::Primary} outline={true} onclick={randomize}>{BI::ARROW_COUNTERCLOCKWISE}</Button>
                             <div class="form-check">
                               <input
                                 type="checkbox"
