@@ -12,6 +12,8 @@ use rand::seq::SliceRandom;
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
+use yew::html::IntoPropValue;
+use yew::virtual_dom::VNode;
 use yew::{Html, function_component, html};
 use yew_bootstrap::component::{Alert, Button};
 use yew_bootstrap::icons::BI;
@@ -480,7 +482,7 @@ pub(crate) fn Select() -> Html {
                         style={yew_bootstrap::util::Color::Secondary}
                         onclick={onclick}
                     >
-                        {name}
+                        {<&str as IntoPropValue<VNode>>::into_prop_value(name)}
                     </Button>
                 </>
             }
