@@ -18,7 +18,7 @@ pub(crate) enum Content {
 }
 
 impl Content {
-    pub(crate) fn image_prefix(&self) -> &'static str {
+    pub(crate) fn image_prefix(self) -> &'static str {
         let name = self.as_str().trim_start_matches("The");
         &name[0..2]
     }

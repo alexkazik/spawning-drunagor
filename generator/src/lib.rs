@@ -1,3 +1,6 @@
+#![forbid(unsafe_code)]
+#![deny(unused_crate_dependencies)]
+
 use crate::monster::{monster, monster_image};
 use crate::setup::setup;
 use anyhow::Context;

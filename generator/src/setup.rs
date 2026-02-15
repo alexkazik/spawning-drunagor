@@ -47,7 +47,7 @@ pub fn setup(monsters: &[Mns]) -> Result<String, anyhow::Error> {
                 item.color,
                 item.level,
                 item.monster
-                    .map_or("None".to_string(), |m| format!("Some(Monster::{})", m)),
+                    .map_or("None".to_string(), |m| format!("Some(Monster::{m})")),
                 item.exclude,
             )?;
         }
@@ -106,7 +106,7 @@ impl<'s> Setup<'s> {
                 let nu = u8::from_str(&f1_co_num[1..2])
                     .map_err(|_| ())
                     .and_then(Number::try_from)
-                    .map_err(|_| error("unknown number"))?;
+                    .map_err(|()| error("unknown number"))?;
 
                 let le = match co {
                     Color::Commander | Color::Special | Color::SpecialCommander => {
@@ -135,10 +135,7 @@ impl<'s> Setup<'s> {
                 }
                 None
             } else {
-                let (sp, f2) = f2
-                    .strip_prefix('*')
-                    .map(|f2| (true, f2))
-                    .unwrap_or((false, f2));
+                let (sp, f2) = f2.strip_prefix('*').map_or((false, f2), |f2| (true, f2));
 
                 let monster = all_monsters
                     .iter()
@@ -173,7 +170,7 @@ impl<'s> Setup<'s> {
 
         Ok(Self {
             content: Content::from_str(fields[0])
-                .map_err(|_| anyhow!("unknown content on \"{}\"", fields.join(",")))?,
+                .map_err(|()| anyhow!("unknown content on \"{}\"", fields.join(",")))?,
             chapter: usize::from_str(fields[1])
                 .map_err(|_| anyhow!("unknown chapter on \"{}\"", fields.join(",")))?,
             name_en: fields[2],

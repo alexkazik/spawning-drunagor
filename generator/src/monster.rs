@@ -15,10 +15,10 @@ pub fn monster() -> Result<(String, Vec<Mns>), anyhow::Error> {
         .collect::<Result<Vec<_>, _>>()?;
 
     monsters.iter().try_fold(HashSet::new(), |mut s, m| {
-        if !s.insert(m.name_en) {
-            bail!("Duplicate monster name: {}", m.name_en);
-        } else {
+        if s.insert(m.name_en) {
             Ok(s)
+        } else {
+            bail!("Duplicate monster name: {}", m.name_en);
         }
     })?;
 
@@ -147,11 +147,12 @@ pub(crate) struct Mns {
     image: Option<(String, String)>,
 }
 
+#[allow(clippy::needless_pass_by_value)]
 fn monster_read(line: Vec<&'static str>) -> anyhow::Result<Mns> {
     let content =
-        Content::from_str(line[0]).map_err(|_| anyhow!("Unknown content: {}", line[0]))?;
+        Content::from_str(line[0]).map_err(|()| anyhow!("Unknown content: {}", line[0]))?;
     let name_en = line[1];
-    let color = Color::from_str(line[2]).map_err(|_| anyhow!("Unknown color: {}", line[2]))?;
+    let color = Color::from_str(line[2]).map_err(|()| anyhow!("Unknown color: {}", line[2]))?;
     let miniature = line[3];
     let name_de = line[4];
     let ident = name_to_ident(name_en);
@@ -163,7 +164,7 @@ fn monster_read(line: Vec<&'static str>) -> anyhow::Result<Mns> {
     );
     let image = if miniature == "self" && exists(&image_path).context("stat image")? {
         let digest = md5::compute(fs::read(&image_path).context("reading image")?);
-        let mut dst_filename = format!("{:32x}", digest);
+        let mut dst_filename = format!("{digest:32x}");
         dst_filename.truncate(8);
         dst_filename.push_str(".jpeg");
 

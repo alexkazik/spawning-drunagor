@@ -1,12 +1,5 @@
 #![forbid(unsafe_code)]
 #![deny(unused_crate_dependencies)]
-#![warn(clippy::std_instead_of_core)]
-#![warn(clippy::pedantic)]
-#![allow(clippy::missing_errors_doc)]
-#![allow(clippy::module_name_repetitions)]
-#![allow(clippy::similar_names)]
-#![allow(clippy::too_many_lines)]
-#![allow(clippy::unsafe_derive_deserialize)]
 
 use crate::game::{Chapter, Content, GameLanguage, Number};
 use crate::msg::MsgLanguage;
