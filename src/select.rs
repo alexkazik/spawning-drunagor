@@ -5,9 +5,8 @@
 
 use crate::Settings;
 use crate::game::{Chapter, Color, Content, GameLanguage, Level, Monster, Number, SETUPS};
+use crate::pick_monster::pick_monster;
 use crate::setup::SetupItem;
-use rand::rng;
-use rand::seq::SliceRandom;
 #[cfg(feature = "debug")]
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
@@ -95,7 +94,7 @@ impl SelectStore {
         }
 
         o.clear();
-        let selected = Self::select(
+        let selected = pick_monster(
             avail_monsters
                 .iter()
                 .copied()
@@ -108,7 +107,7 @@ impl SelectStore {
                 .collect(),
             &todo,
         )
-        .or_else(|| Self::select(avail_monsters, &todo));
+        .or_else(|| pick_monster(avail_monsters, &todo));
         let Some(selected) = selected else {
             return;
         };
@@ -133,28 +132,6 @@ impl SelectStore {
                 }
             }
         }
-    }
-
-    fn select(
-        mut avail: Vec<Monster>,
-        todo: &HashMap<Color, HashSet<Level>>,
-    ) -> Option<HashMap<(Color, Level), Monster>> {
-        avail.shuffle(&mut rng());
-
-        let mut r = HashMap::new();
-        for (co, levels) in todo {
-            for le in levels {
-                let (i, m) = avail
-                    .iter()
-                    .copied()
-                    .enumerate()
-                    .find(|(_, m)| m.color() == *co)?;
-                avail.swap_remove(i);
-                r.insert((*co, *le), m);
-            }
-        }
-
-        Some(r)
     }
 
     pub(crate) fn remove_excluded(&mut self) {

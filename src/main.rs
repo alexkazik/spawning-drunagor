@@ -17,6 +17,7 @@ use yewdux::{Dispatch, Reducer, Store, use_store};
 
 pub(crate) mod game;
 pub(crate) mod msg;
+mod pick_monster;
 pub(crate) mod select;
 mod setup;
 

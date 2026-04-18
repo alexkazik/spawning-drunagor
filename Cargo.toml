@@ -8,7 +8,7 @@ license = "MIT"
 [dependencies]
 enum-tools = { version = "0.5", default-features = false }
 getrandom = { version = "0.4.1", default-features = false, features = ["wasm_js"] }
-rand = { version = "0.10.0", default-features = false, features = ["thread_rng"] }
+rand = { version = "0.10.0", default-features = false, features = ["sys_rng"] }
 serde = { version = "1", default-features = false, features = ["serde_derive"] }
 serde-wasm-bindgen = { version = "0.6", default-features = false, optional = true }
 serde_repr = { version = "0.1", default-features = false }

@@ -132,6 +132,21 @@ pub fn monster() -> Result<(String, Vec<Mns>), anyhow::Error> {
     }
     writeln!(output, "        }}")?;
     writeln!(output, "    }}")?;
+    writeln!(
+        output,
+        "    pub(crate) fn initiative(self) -> Option<i32> {{"
+    )?;
+    writeln!(output, "        #[allow(clippy::match_same_arms)]")?;
+    writeln!(output, "        match self {{")?;
+    for monster in &monsters {
+        writeln!(
+            output,
+            "            Monster::{} => {:?},",
+            &monster.ident, &monster.initiative
+        )?;
+    }
+    writeln!(output, "        }}")?;
+    writeln!(output, "    }}")?;
     writeln!(output, "}}")?;
 
     Ok((output, monsters))
@@ -145,6 +160,7 @@ pub(crate) struct Mns {
     name_de: &'static str,
     pub(crate) ident: String,
     image: Option<(String, String)>,
+    initiative: Option<i32>,
 }
 
 #[allow(clippy::needless_pass_by_value)]
@@ -154,7 +170,21 @@ fn monster_read(line: Vec<&'static str>) -> anyhow::Result<Mns> {
     let name_en = line[1];
     let color = Color::from_str(line[2]).map_err(|()| anyhow!("Unknown color: {}", line[2]))?;
     let miniature = line[3];
-    let name_de = line[4];
+    let initiative = match line[4] {
+        "" => None,
+        "up orange" => Some(0),
+        "up green" => Some(1),
+        "up blue" => Some(2),
+        "up red" => Some(3),
+        "up gray" => Some(4),
+        "dn orange" => Some(5),
+        "dn green" => Some(6),
+        "dn blue" => Some(7),
+        "dn red" => Some(8),
+        "dn gray" => Some(9),
+        other => bail!("Unknown initiative: {other}"),
+    };
+    let name_de = line[5];
     let ident = name_to_ident(name_en);
 
     let image_path = format!(
@@ -184,6 +214,7 @@ fn monster_read(line: Vec<&'static str>) -> anyhow::Result<Mns> {
         name_de,
         ident,
         image,
+        initiative,
     })
 }
 
